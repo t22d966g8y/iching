@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="易經卜卦">
+<meta name="theme-color" content="#2D1B69">
+<title>易經卜卦</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #1E1040;
+  --bg2: #2D1B69;
+  --bg3: #3D2580;
+  --gold: #F5C842;
+  --gold2: #FFE176;
+  --gold3: #C9960A;
+  --copper: #B87333;
+  --copper2: #D4925A;
+  --copper3: #7A4A1E;
+  --red: #FF6B6B;
+  --teal: #4ECDC4;
+  --purple: #9B59B6;
+  --white: #F0E6FF;
+  --muted: #9B8EC4;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
+}
+html, body { height: 100%; overflow: hidden; background: var(--bg); }
+body { font-family: 'PingFang TC', 'Noto Serif TC', serif; color: var(--white); }
+
+.screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: var(--safe-top); }
+.screen.active { display: flex; }
+
+/* ── STARS BG ── */
+.stars { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.star { position: absolute; border-radius: 50%; background: white; animation: twinkle var(--d, 3s) ease-in-out infinite; opacity: 0; }
+@keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:var(--op,0.6)} }
+
+/* ── INTRO ── */
+#s-intro { background: transparent; justify-content: flex-start; z-index: 1; padding-top: calc(var(--safe-top) + 40px); }
+.intro-wrap { position: relative; width: 100%; padding: 0 28px; text-align: center; }
+
+.moon { font-size: 80px; line-height: 1; margin-bottom: 4px; animation: moonFloat 4s ease-in-out infinite; display: block; }
+@keyframes moonFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+.intro-title { font-size: 42px; font-weight: 800; letter-spacing: 0.2em;
+  background: linear-gradient(135deg, var(--gold2), var(--gold), var(--copper2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; }
+.intro-sub { font-size: 13px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 28px; }
+
+.intro-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(245,200,66,0.25); border-radius: 24px; padding: 20px; margin-bottom: 20px; }
+.intro-label { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 10px; text-align: left; }
+.intro-input { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(245,200,66,0.3); border-radius: 14px; padding: 14px 16px; font-size: 16px; color: var(--white); font-family: inherit; outline: none; }
+.intro-input::placeholder { color: var(--muted); }
+select.intro-input option { color: #222; background: #fff; }
+
+.najia-table { border-top: 1px solid rgba(255,255,255,0.1); }
+.najia-row { padding: 10px 2px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.najia-row-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.najia-postag { font-size: 13px; font-weight: 700; min-width: 34px; opacity: .9; }
+.najia-yaoart { display: flex; flex-direction: column; gap: 4px; }
+.najia-row-body { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; opacity: .92; }
+.najia-row-body b { opacity: .55; font-weight: 400; font-size: 11px; margin-right: 3px; }
+.najia-change { font-size: 12px; opacity: .8; margin-top: 6px; line-height: 1.6; }
+.najia-liuqin-tag { font-size: 14px; font-weight: 700; padding: 2px 9px; border-radius: 8px; background: rgba(245,200,66,0.16); }
+.najia-beast-tag { font-size: 12px; opacity: .8; line-height: 1.6; }
+.najia-ganzhi-detail { font-size: 11px; opacity: .6; margin-top: 4px; }
+
+.intro-hint-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+.hint-chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(245,200,66,0.3); color: var(--muted); }
+
+.btn-start { width: 100%; padding: 18px; border: none; border-radius: 20px; font-size: 20px; font-family: inherit; font-weight: 700; color: var(--bg); letter-spacing: 0.14em; cursor: pointer;
+  background: linear-gradient(135deg, var(--gold2), var(--gold), var(--copper2));
+  box-shadow: 0 8px 24px rgba(245,200,66,0.35); transition: transform 0.15s, box-shadow 0.15s; }
+.btn-start:active { transform: scale(0.96); box-shadow: 0 4px 12px rgba(245,200,66,0.2); }
+
+/* ── HISTORY LIST SECTION ── */
+.history-section { width: 100%; padding: 0 28px; margin-top: 32px; margin-bottom: calc(30px + var(--safe-bottom)); text-align: left; }
+.history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+.history-title-label { font-size: 14px; font-weight: 600; color: var(--gold2); letter-spacing: 0.05em; }
+.btn-clear-history { background: transparent; border: none; color: var(--muted); font-size: 11px; cursor: pointer; padding: 4px 8px; }
+.btn-clear-history:active { color: var(--red); }
+.history-list { display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; padding-right: 4px; }
+.history-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; cursor: pointer; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center; }
+.history-item:active { background: rgba(255,255,255,0.12); }
+.history-item-left { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.history-item-q { font-size: 14px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-item-time { font-size: 10px; color: var(--muted); }
+.history-item-right { font-size: 13px; color: var(--gold); font-weight: 600; padding-left: 12px; text-align: right; white-space: nowrap; }
+.history-empty { text-align: center; color: var(--muted); font-size: 12px; padding: 20px 0; }
+
+/* ── CUSTOM MODAL DIALOG ── */
+.custom-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 9999; padding: 20px; backdrop-filter: blur(4px); }
+.custom-modal.show { display: flex; }
+.modal-card { background: var(--bg2); border: 1px solid rgba(245,200,66,0.3); border-radius: 20px; width: 100%; max-width: 320px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.modal-title { font-size: 16px; font-weight: 700; color: var(--gold2); margin-bottom: 12px; }
+.modal-text { font-size: 14px; color: var(--white); line-height: 1.6; margin-bottom: 24px; }
+.modal-btns { display: flex; gap: 12px; }
+.modal-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btn-confirm-del { background: var(--red); color: white; }
+.btn-cancel-del { background: rgba(255,255,255,0.1); color: var(--muted); }
+
+/* ── CAST ── */
+#s-cast { background: transparent; justify-content: space-between; z-index: 1; }
+
+.cast-top { width: 100%; padding: 14px 24px 0; }
+.progress-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
+.pdot { width: 32px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.12); transition: all 0.35s; }
+.pdot.done { background: var(--gold); }
+.pdot.active { background: var(--gold2); box-shadow: 0 0 10px rgba(245,200,66,0.6); }
+
+.yao-label { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: 0.08em; }
+.yao-big { text-align: center; font-size: 32px; font-weight: 800; color: var(--gold2); margin-bottom: 8px; }
+
+/* COINS */
+.coins-area { display: flex; gap: 20px; justify-content: center; align-items: center; }
+
+.coin-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.coin-label-top { font-size: 11px; color: var(--muted); height: 16px; }
+
+.coin { width: 90px; height: 90px; border-radius: 50%; position: relative; cursor: pointer;
+  background: radial-gradient(circle at 35% 35%, var(--copper2) 0%, var(--copper) 45%, var(--copper3) 100%);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -2px 4px rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+
+.coin-hole { width: 22px; height: 22px; background: var(--bg); border-radius: 3px; position: absolute; box-shadow: inset 0 2px 4px rgba(0,0,0,0.6); }
+.coin::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); }
+.coin::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.25); }
+
+.coin.yang {
+  background: radial-gradient(circle at 35% 35%, var(--gold2) 0%, var(--gold) 45%, var(--gold3) 100%);
+  box-shadow: 0 6px 20px rgba(245,200,66,0.4), inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.2);
+}
+.coin.yang .coin-hole { background: var(--bg); }
+.coin.yang .coin-char { color: var(--bg); text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.coin.yin .coin-char { color: var(--gold2); text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.coin-char { position: absolute; font-size: 22px; font-weight: 700; z-index: 2; letter-spacing: 0; }
+.coin.idle { opacity: 0.55; }
+.coin.idle .coin-char { display: none; }
+
+@keyframes coinFlip {
+  0%   { transform: rotateY(0) scale(1); }
+  30%  { transform: rotateY(90deg) scale(0.8); }
+  60%  { transform: rotateY(0deg) scale(1.08); }
+  100% { transform: rotateY(0) scale(1); }
+}
+.coin.flipping { animation: coinFlip 0.55s ease; }
+
+.coin-result-area { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 20px; }
+.chip { padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+.chip-sum { background: rgba(255,255,255,0.1); color: var(--white); }
+.chip-yang { background: rgba(245,200,66,0.2); color: var(--gold2); border: 1px solid rgba(245,200,66,0.4); }
+.chip-yin { background: rgba(78,205,196,0.15); color: var(--teal); border: 1px solid rgba(78,205,196,0.35); }
+.chip-change { background: rgba(255,107,107,0.2); color: var(--red); border: 1px solid rgba(255,107,107,0.4); }
+
+.yao-history { flex: 1; display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 8px; padding: 0 24px; width: 100%; }
+.yao-row { display: flex; align-items: center; gap: 10px; }
+.yao-idx { font-size: 11px; color: var(--muted); width: 20px; text-align: center; flex-shrink: 0; }
+.yao-line-wrap { width: 120px; flex-shrink: 0; display: flex; align-items: center; }
+.seg { height: 12px; border-radius: 3px; }
+.seg-yang { background: linear-gradient(90deg, var(--gold), var(--gold2)); box-shadow: 0 0 6px rgba(245,200,66,0.4); }
+.seg-yin { background: linear-gradient(90deg, var(--teal), #7EDDD8); box-shadow: 0 0 6px rgba(78,205,196,0.35); }
+.chg-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); flex-shrink: 0; box-shadow: 0 0 6px rgba(255,107,107,0.6); }
+
+.cast-bottom { width: 100%; padding: 12px 24px; padding-bottom: calc(12px + var(--safe-bottom)); }
+.btn-throw { width: 100%; padding: 20px; border: 2px solid var(--gold); border-radius: 22px; font-size: 22px; font-family: inherit; font-weight: 700; color: var(--gold); letter-spacing: 0.14em; cursor: pointer;
+  background: rgba(245,200,66,0.08);
+  box-shadow: 0 0 20px rgba(245,200,66,0.15); transition: all 0.15s; }
+.btn-throw:active { transform: scale(0.97); background: rgba(245,200,66,0.18); }
+.btn-throw:disabled { opacity: 0.25; }
+
+/* ── RESULT ── */
+#s-result { background: transparent; z-index: 1; }
+.result-scroll { width: 100%; padding: 24px 20px; padding-bottom: calc(24px + var(--safe-bottom)); }
+
+.result-q { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.result-eyebrow { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: 0.12em; margin-bottom: 20px; }
+
+.hex-row { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 24px; }
+.hex-card { text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(245,200,66,0.2); border-radius: 20px; padding: 16px 20px; }
+.hex-tag { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 8px; }
+.hex-visual { display: flex; flex-direction: column-reverse; gap: 6px; margin: 0 auto 10px; width: fit-content; }
+.hex-line { display: flex; align-items: center; justify-content: center; }
+.h-seg { height: 11px; border-radius: 3px; }
+.h-yang { background: linear-gradient(90deg, var(--gold), var(--gold2)); }
+.h-yin { background: linear-gradient(90deg, var(--teal), #7EDDD8); }
+.hex-name { font-size: 28px; font-weight: 800; color: var(--gold2); }
+.hex-num { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.arrow-sym { font-size: 24px; color: var(--muted); }
+
+/* ── 卡牌式呈現（Oracle Card）── */
+.oracle-wrap { margin-bottom: 22px; display: flex; justify-content: center; }
+.oracle-card { width: 100%; max-width: 320px; background: #EFE7D6; border-radius: 18px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(245,200,66,0.35), 0 8px 30px rgba(245,200,66,0.18), 0 14px 40px rgba(0,0,0,0.45); }
+.oracle-art { position: relative; height: 190px; overflow: hidden; display: flex; flex-direction: column; }
+.oracle-scene { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.oracle-half { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; }
+.oracle-half-sky { flex: 130 0 0; }
+.oracle-half-ground { flex: 90 0 0; }
+.oracle-emoji { font-size: 68px; line-height: 1; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4)); }
+.oracle-emoji-ground { font-size: 54px; }
+.oracle-symbol { position: absolute; left: 12px; bottom: 12px; display: flex; flex-direction: column-reverse; gap: 3px; width: fit-content; z-index: 2; }
+.oracle-symbol .h-seg { height: 6px; width: 34px; border-radius: 2px; }
+.oracle-symbol .h-yang-seg { background: rgba(255,255,255,0.92); }
+.oracle-symbol .h-yin-seg { display: flex; gap: 5px; }
+.oracle-symbol .h-yin-seg span { flex: 1; height: 6px; background: rgba(255,255,255,0.92); border-radius: 2px; }
+.oracle-band { background: #17130D; display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; }
+.oracle-eng { color: #EFE7D6; font-size: 13px; letter-spacing: 0.05em; font-style: italic; }
+.oracle-num { color: var(--gold); font-size: 15px; font-weight: 700; }
+.oracle-info { display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 18px 8px; }
+.oracle-quote { flex: 1; font-size: 12px; line-height: 2; color: #4a4032; padding-right: 10px; }
+.oracle-hanzi-box { text-align: center; flex-shrink: 0; }
+.oracle-hanzi { font-size: 30px; font-weight: 800; color: #2b2418; line-height: 1; }
+.oracle-pinyin { font-size: 11px; color: #8a7a5c; font-style: italic; margin-top: 4px; }
+.oracle-fullname { text-align: center; padding: 4px 0 16px; font-size: 20px; font-weight: 700; color: #2b2418; letter-spacing: 0.15em; }
+.oracle-changeto { text-align: center; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.oracle-changeto b { color: var(--gold2); }
+
+.rblock { border-radius: 20px; padding: 18px 20px; margin-bottom: 14px; }
+.rblock-judgment { background: rgba(155,89,182,0.08); border: 1px solid rgba(155,89,182,0.22); }
+.judgment-gloss { font-size: 13px; opacity: .85; line-height: 1.7; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.15); }
+.judgment-gloss b { opacity: .65; font-weight: 600; }
+.rblock-meaning { background: rgba(245,200,66,0.07); border: 1px solid rgba(245,200,66,0.18); }
+.rblock-advice { background: rgba(78,205,196,0.07); border: 1px solid rgba(78,205,196,0.2); }
+.rblock-category { background: rgba(245,200,66,0.05); border: 1px solid rgba(245,200,66,0.15); border-top-left-radius: 4px; margin-top: -10px; }
+.rblock-change { background: rgba(255,107,107,0.07); border: 1px solid rgba(255,107,107,0.2); }
+.rblock-changenote { background: rgba(255,107,107,0.04); border: 1px solid rgba(255,107,107,0.15); }
+.rblock-structure { background: rgba(78,205,196,0.05); border: 1px solid rgba(78,205,196,0.16); }
+.rblock-yaoposition { background: rgba(255,107,107,0.05); border: 1px solid rgba(255,107,107,0.16); }
+.rblock-label { font-size: 11px; letter-spacing: 0.12em; margin-bottom: 8px; }
+.lb-gold { color: var(--gold); }
+.lb-gold2 { color: var(--gold2); }
+.lb-teal { color: var(--teal); }
+.lb-red { color: var(--red); }
+.lb-purple { color: var(--purple); }
+.rblock-text { font-size: 15px; line-height: 1.9; color: var(--white); }
+.rblock-quote { font-style: normal; color: var(--muted); font-size: 14px; line-height: 1.8; }
+
+.category-tabs { display: flex; gap: 8px; margin-bottom: 0; padding: 0 2px; }
+.cat-tab { flex: 1; padding: 10px 0; border: 1px solid rgba(245,200,66,0.2); background: rgba(255,255,255,0.04); color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; cursor: pointer; border-radius: 12px 12px 0 0; border-bottom: none; transition: all 0.2s; }
+.cat-tab.active { background: rgba(245,200,66,0.12); color: var(--gold2); border-color: rgba(245,200,66,0.35); }
+
+.change-pills { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+
+.btn-reset { width: 100%; padding: 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); font-size: 16px; font-family: inherit; color: var(--muted); cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.08em; }
+.btn-reset:active { opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="custom-modal" id="delete-modal">
+  <div class="modal-card">
+    <div class="modal-title">確認刪除</div>
+    <div class="modal-text">確定要刪除所有占卜歷史紀錄嗎？此操作將無法復原。</div>
+    <div class="modal-btns">
+      <button class="modal-btn btn-cancel-del" onclick="closeDeleteModal()">取消</button>
+      <button class="modal-btn btn-confirm-del" onclick="confirmClearHistory()">確認刪除</button>
+    </div>
+  </div>
+</div>
+
+<div class="custom-modal" id="pass-modal">
+  <div class="modal-card">
+    <div class="modal-title" id="pw-title">輸入密碼</div>
+    <div class="modal-text" id="pw-text" style="margin-bottom:12px"></div>
+    <input id="pw-input" type="password" autocomplete="off" placeholder="密碼" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.3);color:#fff;font-size:16px;margin-bottom:8px;font-family:inherit">
+    <input id="pw-input2" type="password" autocomplete="off" placeholder="再輸入一次" style="display:none;width:100%;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.3);color:#fff;font-size:16px;margin-bottom:8px;font-family:inherit">
+    <div id="pw-err" style="color:#ff8a8a;font-size:12px;min-height:16px;margin-bottom:8px"></div>
+    <div class="modal-btns">
+      <button class="modal-btn btn-cancel-del" id="pw-cancel">取消</button>
+      <button class="modal-btn" id="pw-ok" style="background:var(--gold);color:#000">確定</button>
+    </div>
+  </div>
+</div>
+
+<!-- INTRO -->
+<div class="screen active" id="s-intro">
+  <div class="intro-wrap">
+    <span class="moon">🌙</span>
+    <div class="intro-title">周易卜卦</div>
+    <div class="intro-sub">銅錢六爻占法</div>
+    <div class="intro-card">
+      <div class="intro-label">✦ 靜心默想，所問之事</div>
+      <input class="intro-input" id="q-input" type="text" placeholder="輸入您的問題（可略）" maxlength="40">
+      <div class="intro-label" style="margin-top:14px;">✦ 這次問的事情屬於哪一類？（用來判斷吉凶用神）</div>
+      <select id="q-category" class="intro-input" onchange="onCategoryChange()" style="appearance:none;-webkit-appearance:none;cursor:pointer;">
+        <option value="career">事業／工作發展</option>
+        <option value="wealth">財運／投資求財</option>
+        <option value="love">感情／婚姻對象</option>
+        <option value="health">健康／病情</option>
+        <option value="lawsuit">官司／是非糾紛</option>
+        <option value="exam">考試／文書證照</option>
+        <option value="offspring">子女／晚輩／福氣</option>
+        <option value="general">其他／整體運勢（看自身世爻）</option>
+      </select>
+      <div id="q-gender-row" style="display:none;margin-top:14px;">
+        <div class="intro-label" style="opacity:.7;">✦ 感情類預設會用「妻財」代表感情裡在意的對象／伴侶（不分性別）。這裡涉及「六親」的概念，會在卜卦結果裡詳細說明；如果你已經懂這個概念、想改用「官鬼」，可以點下面展開調整，不懂的話直接略過即可。</div>
+        <div style="margin-top:8px;">
+          <span onclick="toggleLoveAdvanced(this)" style="font-size:12px;opacity:.6;text-decoration:underline;cursor:pointer;">進階設定（一般可略過）</span>
+        </div>
+        <select id="q-gender" class="intro-input" style="display:none;margin-top:8px;appearance:none;-webkit-appearance:none;cursor:pointer;">
+          <option value="wealth">用「妻財」（預設，感情裡在意的對象／伴侶）</option>
+          <option value="official">用「官鬼」（傳統上另一種代表方式）</option>
+        </select>
+      </div>
+    </div>
+    <div class="intro-hint-row">
+      <span class="hint-chip">9老陽●變</span>
+      <span class="hint-chip">8少陰○</span>
+      <span class="hint-chip">7少陽●</span>
+      <span class="hint-chip">6老陰○變</span>
+    </div>
+    <div style="height:16px"></div>
+    <button class="btn-start" onclick="startDivination()">✦ 開始起卦 ✦</button>
+  </div>
+  <div class="history-section">
+    <div class="history-header">
+      <span class="history-title-label">✦ 占卜歷史檔案</span>
+      <span><button class="btn-clear-history" id="lock-btn" onclick="toggleLock()">🔓 設定密碼</button><button class="btn-clear-history" onclick="openDeleteModal()">清除全部</button></span>
+    </div>
+    <div class="history-list" id="history-list-box"></div>
+  </div>
+</div>
+
+<!-- CAST -->
+<div class="screen" id="s-cast">
+  <div class="cast-top">
+    <div class="progress-row" id="progress"></div>
+    <div class="yao-label">第</div>
+    <div class="yao-big" id="yao-num-display">一 爻</div>
+  </div>
+  <div class="coins-area">
+    <div class="coin-wrap">
+      <div class="coin-label-top" id="cl0"></div>
+      <div class="coin idle" id="c0"><div class="coin-hole"></div><span class="coin-char"></span></div>
+    </div>
+    <div class="coin-wrap">
+      <div class="coin-label-top" id="cl1"></div>
+      <div class="coin idle" id="c1"><div class="coin-hole"></div><span class="coin-char"></span></div>
+    </div>
+    <div class="coin-wrap">
+      <div class="coin-label-top" id="cl2"></div>
+      <div class="coin idle" id="c2"><div class="coin-hole"></div><span class="coin-char"></span></div>
+    </div>
+  </div>
+  <div class="coin-result-area" id="coin-result"></div>
+  <div class="yao-history" id="yao-history"></div>
+  <div class="cast-bottom">
+    <button class="btn-throw" id="throw-btn" onclick="throwCoins()">搖 卦</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s-result">
+  <div class="result-scroll" id="result-content"></div>
+</div>
+
+<script>
+// Stars
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2.5+0.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*4+2).toFixed(1)}s;--op:${(Math.random()*0.5+0.2).toFixed(2)};animation-delay:${(Math.random()*5).toFixed(1)}s`;
+    c.appendChild(s);
+  }
+})();
+
+const NUM_NAMES=['初','二','三','四','五','上']; // 修正：傳統爻位命名為初爻~上爻，而非一~六爻
+
+// ── 八卦基礎資料（用來自動生成卦象結構解析，不需要對64卦逐一手寫）──
+// key 為三位 0/1（由下而上），對應到八卦
+const TRIGRAMS={
+  '111':{name:'乾',nature:'天',trait:'剛健',role:'父',desc:'剛健不息、主導開創',c1:'#16305c',c2:'#5b8fd4',icon:'circle',emoji:'☀️'},
+  '000':{name:'坤',nature:'地',trait:'柔順',role:'母',desc:'柔順包容、厚德載物',c1:'#5c4322',c2:'#c9985c',icon:'layers',emoji:'🌾'},
+  '100':{name:'震',nature:'雷',trait:'震動',role:'長男',desc:'奮起躁動、由下而起',c1:'#3a2260',c2:'#9269c9',icon:'bolt',emoji:'⚡'},
+  '010':{name:'坎',nature:'水',trait:'險陷',role:'中男',desc:'流動不定、暗藏險阻',c1:'#0e2a45',c2:'#3f7ba3',icon:'wave',emoji:'🌧️'},
+  '001':{name:'艮',nature:'山',trait:'止靜',role:'少男',desc:'穩重靜止、知止不進',c1:'#33402f',c2:'#7f9273',icon:'peak',emoji:'⛰️'},
+  '011':{name:'巽',nature:'風',trait:'滲入',role:'長女',desc:'柔順滲透、無孔不入',c1:'#1a4a42',c2:'#5cc2a8',icon:'swirl',emoji:'💨'},
+  '101':{name:'離',nature:'火',trait:'附麗',role:'中女',desc:'光明外現、依附而生',c1:'#5c2410',c2:'#e2743f',icon:'flame',emoji:'🔥'},
+  '110':{name:'兌',nature:'澤',trait:'喜悅',role:'少女',desc:'開口喜悅、外柔內剛',c1:'#0d4b52',c2:'#52c6d6',icon:'pool',emoji:'🌊'}
+};
+// 天空意象（上卦）與大地意象（下卦）：改為實心填色的插畫風格（emoji貼圖感），取代線條描邊
+// viewBox 統一為 0 0 300 220，地平線約在 y=130
+const SKY_ART={
+  circle:'<circle cx="150" cy="58" r="30" fill="#FFDA6B"/><path d="M150 28 L157 4 L143 4 Z" fill="#FFDA6B"/><path d="M150 88 L157 112 L143 112 Z" fill="#FFDA6B"/><path d="M180 58 L204 50 L204 66 Z" fill="#FFDA6B"/><path d="M120 58 L96 50 L96 66 Z" fill="#FFDA6B"/><path d="M171 37 L192 20 L184 43 Z" fill="#FFDA6B"/><path d="M129 37 L108 20 L116 43 Z" fill="#FFDA6B"/><path d="M171 79 L192 96 L184 73 Z" fill="#FFDA6B"/><path d="M129 79 L108 96 L116 73 Z" fill="#FFDA6B"/>',
+  layers:'<g fill="#FFFFFF"><ellipse cx="88" cy="50" rx="34" ry="20"/><ellipse cx="118" cy="40" rx="28" ry="22"/><ellipse cx="58" cy="46" rx="22" ry="16"/></g><g fill="#F0EBDD" opacity="0.92"><ellipse cx="212" cy="76" rx="38" ry="20"/><ellipse cx="242" cy="66" rx="26" ry="18"/><ellipse cx="182" cy="70" rx="22" ry="15"/></g>',
+  bolt:'<g fill="#4A4560"><ellipse cx="150" cy="35" rx="70" ry="24"/><ellipse cx="100" cy="45" rx="45" ry="18"/><ellipse cx="200" cy="45" rx="45" ry="18"/></g><path d="M167 20 L128 78 L152 78 L118 130 L184 60 L155 60 Z" fill="#FFDA6B"/>',
+  wave:'<g fill="#8FA9C4"><ellipse cx="150" cy="35" rx="65" ry="22"/><ellipse cx="105" cy="45" rx="42" ry="16"/><ellipse cx="195" cy="45" rx="42" ry="16"/></g><g fill="#7EC8E3"><path d="M95 68 q-7 20 0 27 q7 -7 0 -27z"/><path d="M130 65 q-7 20 0 27 q7 -7 0 -27z"/><path d="M165 68 q-7 20 0 27 q7 -7 0 -27z"/><path d="M200 65 q-7 20 0 27 q7 -7 0 -27z"/></g>',
+  peak:'<path d="M0 130 L60 65 L100 100 L150 48 L200 100 L240 70 L300 130 Z" fill="#8FA083"/><path d="M140 60 L150 48 L160 60 L152 58 Z" fill="#FFFFFF"/>',
+  swirl:'<g fill="#D7F0E8"><ellipse cx="70" cy="55" rx="36" ry="15"/><ellipse cx="230" cy="72" rx="40" ry="15"/></g><path d="M20 92 q80 -12 140 3 q40 10 20 23 q-70 13 -130 -9z" fill="#B8E3D5"/><ellipse cx="150" cy="38" rx="46" ry="16" fill="#C3E8DC"/>',
+  flame:'<circle cx="150" cy="58" r="30" fill="#FFB74D"/><path d="M150 25 L158 2 L142 2 Z" fill="#FFB74D"/><path d="M150 91 L158 114 L142 114 Z" fill="#FFB74D"/><path d="M183 58 L206 50 L206 66 Z" fill="#FFB74D"/><path d="M117 58 L94 50 L94 66 Z" fill="#FFB74D"/><circle cx="150" cy="58" r="19" fill="#FF7043"/>',
+  pool:'<circle cx="60" cy="42" r="3" fill="#fff"/><circle cx="100" cy="60" r="2" fill="#fff"/><circle cx="40" cy="65" r="2.5" fill="#fff"/><path d="M218 16 a22 22 0 1 0 0 44 a16 16 0 1 1 0 -44" fill="#FFF4D6"/>'
+};
+const GROUND_ART={
+  circle:'<ellipse cx="150" cy="145" rx="150" ry="14" fill="#FFE9A8" opacity="0.55"/><path d="M0 165 Q150 150 300 165 L300 220 L0 220 Z" fill="#F3D98B" opacity="0.5"/>',
+  layers:'<path d="M0 165 Q75 140 150 165 T300 165 L300 220 L0 220 Z" fill="#8FA46A"/><path d="M0 190 Q75 168 150 190 T300 190 L300 220 L0 220 Z" fill="#7A9459"/>',
+  bolt:'<g stroke="#3a2b18" stroke-width="3" fill="none" stroke-linecap="round"><path d="M150 133 L128 160 L146 166 L118 202"/><path d="M150 133 L176 158 L159 168 L186 206"/><path d="M150 133 L150 176 L133 212"/></g>',
+  wave:'<path d="M0 150 Q60 138 100 155 T200 155 T300 143 L300 220 L0 220 Z" fill="#8FC3DE"/><path d="M0 175 Q80 162 160 178 T300 168 L300 220 L0 220 Z" fill="#5D93B3"/>',
+  peak:'<path d="M0 220 L42 148 L92 220 Z" fill="#7C8C6E"/><path d="M178 220 L220 160 L272 220 Z" fill="#6F7F62"/><ellipse cx="128" cy="204" rx="20" ry="12" fill="#8A9A7C"/>',
+  swirl:'<g fill="#6FAE5C"><path d="M30 220 Q40 185 20 160 Q55 190 40 220 Z"/><path d="M90 220 Q102 182 74 158 Q118 186 104 220 Z"/><path d="M160 220 Q172 184 142 160 Q186 188 174 220 Z"/><path d="M230 220 Q242 184 212 160 Q256 188 244 220 Z"/><path d="M280 220 Q290 188 270 165 Q296 192 288 220 Z"/></g>',
+  flame:'<g fill="#FF8A50"><path d="M96 220 q-8 -26 8 -38 q7 18 -3 28 q13 -5 10 -22 q13 15 3 32z"/><path d="M204 220 q-8 -26 8 -38 q7 18 -3 28 q13 -5 10 -22 q13 15 3 32z"/></g><g fill="#FFC98A"><circle cx="140" cy="205" r="4"/><circle cx="175" cy="195" r="3"/></g>',
+  pool:'<ellipse cx="150" cy="178" rx="125" ry="24" fill="#5FB8CB"/><ellipse cx="150" cy="178" rx="80" ry="12" fill="none" stroke="#DFF3F6" stroke-width="2" opacity="0.7"/><ellipse cx="150" cy="178" rx="45" ry="7" fill="none" stroke="#DFF3F6" stroke-width="2" opacity="0.7"/>'
+};
+// 根據64卦的卦義,給每一卦一個簡短的英文主題詞(自行擬定的白話意譯,而非引用特定商業卡牌的翻譯)
+const ENGLISH_NAMES={1:'The Creative',2:'The Receptive',3:'Difficulty at the Start',4:'Youthful Folly',5:'Waiting',6:'Conflict',7:'The Army',8:'Holding Together',9:'Small Accumulation',10:'Treading Carefully',11:'Peace',12:'Standstill',13:'Fellowship',14:'Great Possession',15:'Humility',16:'Enthusiasm',17:'Following',18:'Repairing Decay',19:'Approach',20:'Contemplation',21:'Biting Through',22:'Adornment',23:'Splitting Apart',24:'Return',25:'Innocence',26:'Great Accumulation',27:'Nourishment',28:'Great Excess',29:'The Abyss',30:'Clinging Fire',31:'Mutual Attraction',32:'Duration',33:'Retreat',34:'Great Strength',35:'Advancing',36:'Darkening of the Light',37:'The Family',38:'Opposition',39:'Obstruction',40:'Deliverance',41:'Decrease',42:'Increase',43:'Breakthrough',44:'Encounter',45:'Gathering Together',46:'Growing Upward',47:'Oppression',48:'The Well',49:'Revolution',50:'The Cauldron',51:'The Arousing Thunder',52:'Keeping Still',53:'Gradual Progress',54:'The Marrying Maiden',55:'Abundance',56:'The Wanderer',57:'Gentle Penetration',58:'Joyful Openness',59:'Dispersion',60:'Restraint',61:'Inner Truth',62:'Small Exceeding',63:'After Completion',64:'Before Completion'};
+
+// 根據六位key拆出上卦、下卦，組成「卦象結構解析」文字（自動生成，涵蓋全部64卦，不會有誤植問題）
+function getStructureAnalysis(key){
+  const lower=key.slice(0,3), upper=key.slice(3,6);
+  const l=TRIGRAMS[lower], u=TRIGRAMS[upper];
+  if(!l||!u) return '';
+  const lEl = PALACE_ELEMENT[l.name], uEl = PALACE_ELEMENT[u.name];
+  const rel = elementRelation(lEl, uEl); // a=下卦(自己/根基)，b=上卦(外在環境)
+  const relText = {
+    bi:        `下卦${l.name}屬「${lEl}」、上卦${u.name}也屬「${uEl}」，兩者屬性相同——代表「自己／根基」和「外在環境」步調一致，做事時比較不會互相牽制，環境跟你的狀態算是同一陣線。`,
+    a_sheng_b: `下卦${l.name}屬「${lEl}」，${lEl}生${uEl}，代表「自己／根基」的力量正在幫助、成就「外在環境」（上卦${u.name}）——也就是說你目前是主動付出、去影響外在情勢的一方，走向比較掌握在你手上，但也代表你需要多費點力氣。`,
+    b_sheng_a: `上卦${u.name}屬「${uEl}」，${uEl}生${lEl}，代表「外在環境」正在幫助、滋養「自己／根基」（下卦${l.name}）——也就是說目前外在的條件、貴人或時機對你有利，事情推進上會比較順、比較省力。`,
+    a_ke_b:    `下卦${l.name}屬「${lEl}」，${lEl}克${uEl}，代表「自己／根基」對「外在環境」（上卦${u.name}）有比較強的掌控力——也就是說你目前主導性較強，能去影響、改變外在的局面，但也要留意別太強硬，以免環境反彈。`,
+    b_ke_a:    `上卦${u.name}屬「${uEl}」，${uEl}克${lEl}，代表「外在環境」對「自己／根基」（下卦${l.name}）形成比較大的壓力或限制——也就是說目前外在的條件、他人或大環境對你比較不利，需要多一點耐心與應變。`,
+    none:      `下卦${l.name}（${lEl}）和上卦${u.name}（${uEl}）之間沒有明顯的五行生克關係，兩者比較各自獨立，彼此牽動不大。`
+  };
+  return `這一卦由「下卦${l.name}（${l.nature}，${l.desc}）」和「上卦${u.name}（${u.nature}，${u.desc}）」組成，`+
+    `下卦代表<b>你自己目前的根基與狀態</b>，上卦代表<b>外在環境、他人或事情未來的走向</b>。`+
+    `<br><br>${relText[rel] || relText.none}`;
+}
+
+// ── 爻位深度解讀：通用爻位理論（初~上各有其位置意義，陽爻居陽位/陰爻居陰位為「得正」）──
+const YAO_POSITION_MEANING=[
+  '初爻在卦的最下方，代表事情才剛開始、還在起步階段，基礎還不穩固，情況也還不明朗。建議先把基本功打好，不要急著求成果。',
+  '二爻在下卦的中間，是相對穩定的位置，代表已經有了一定的基礎。這個位置通常比較容易得到別人的信任與支持。',
+  '三爻在下卦的最上方，剛好卡在「內部」和「外部」交接的地方，進退兩難、容易患得患失。建議這個階段步步為營，做決定前多想一步，先別急著行動。',
+  '四爻剛進入上卦，接近關鍵的五爻位置，容易感到不安、擔心得失。建議這個階段用輔助配合的態度做事，按部就班，不要急著搶功勞或衝第一線。',
+  '五爻在上卦的中間，是整個卦裡最關鍵的位置，代表掌握核心、握有主導權，通常是吉利的，但也代表責任比較重。',
+  '上爻在卦的最頂端，代表事情已經發展到頂點，接下來可能會由盛轉衰，或是該功成身退了。建議這個階段要提高警覺、見好就收，不要得意忘形。'
+];
+// 每個爻位的「白話階段」短標籤，用來跟六親身分做組合，直接產生結論句
+const POSITION_STAGE_SHORT = [
+  '剛起步、基礎還不穩固的階段',
+  '已有一定基礎、逐漸站穩腳步的階段',
+  '進退兩難、容易猶豫不決的階段',
+  '接近核心、心裡患得患失的階段',
+  '掌握主導權、責任也隨之加重的階段',
+  '發展到頂點、要留意由盛轉衰的階段'
+];
+// 每種六親對應的白話「主題」，比 LIUQIN_DESC 更短，方便組成句子
+const LIUQIN_SUBJECT = {
+  '父母':'文書、長輩或責任壓力',
+  '兄弟':'競爭、朋友或破財',
+  '子孫':'福氣、化解或晚輩',
+  '官鬼':'工作、官司或健康壓力',
+  '妻財':'財富、物質或感情對象'
+};
+function getYaoPositionAnalysis(index, isYang, lineNajia){
+  const posMeaning = YAO_POSITION_MEANING[index];
+  const isYangPosition = (index%2===0); // 初(0)三(2)五(4)為陽位，二(1)四(3)上(5)為陰位
+  const isProper = (isYang && isYangPosition) || (!isYang && !isYangPosition);
+  const properText = isProper
+    ? '另外，這一爻的陰陽屬性跟它所在的位置是相合的（稱為「得正」），代表這個階段的行事方式跟處境是合拍的，比較容易順勢而為。'
+    : '另外，這一爻的陰陽屬性跟它所在的位置不太合（稱為「不得正」），代表這個階段的處境有點不上不下、不太合時宜，行事前要更謹慎、多做調整，才能化解不利之處。';
+  let najiaLine = '';
+  if(lineNajia){
+    const stage = POSITION_STAGE_SHORT[index];
+    const subject = LIUQIN_SUBJECT[lineNajia.liuqin] || lineNajia.liuqin;
+    const roleTxt = lineNajia.isWorld ? '，而且這一爻就是代表<b>你自己</b>的「世爻」' : lineNajia.isResponse ? '，而且這一爻就是代表<b>對方或事情另一端</b>的「應爻」' : '';
+    najiaLine = `<br><br><b>綜合來看：</b>這一爻的六親身分是「${lineNajia.liuqin}」，代表跟「<b>${subject}</b>」有關的事${roleTxt}。
+      換句話說，你在<b>${subject}</b>這件事情上，目前的處境就是「${stage}」——這才是這一爻真正想提醒你的重點。`;
+  }
+  return posMeaning+properText+najiaLine;
+}
+
+// ── 卡牌式呈現：把卦象包裝成類似神諭卡的視覺卡片 ──
+function buildOracleCard(key, hex, hasChangeArrowTo){
+  const lower=key.slice(0,3), upper=key.slice(3,6);
+  const l=TRIGRAMS[lower], u=TRIGRAMS[upper];
+  const eng = ENGLISH_NAMES[hex.n] || '';
+  const gid = 'g'+key; // 漸層id避免多卡同時存在時互相干擾
+  // 卡面上的六爻符號（由下往上）
+  const symbolHtml = key.split('').map(bit=>{
+    if(bit==='1') return `<div class="h-seg h-yang-seg"></div>`;
+    return `<div class="h-seg h-yin-seg"><span></span><span></span></div>`;
+  }).join('');
+  const changeToHtml = hasChangeArrowTo ? `<div class="oracle-changeto">變卦 → <b>${hasChangeArrowTo.name}（${hasChangeArrowTo.title}）</b></div>` : '';
+  const scene = `<svg class="oracle-scene" viewBox="0 0 300 220" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sky-${gid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${u.c1}"/><stop offset="100%" stop-color="${u.c2}"/>
+      </linearGradient>
+      <linearGradient id="gnd-${gid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${l.c2}"/><stop offset="100%" stop-color="${l.c1}"/>
+      </linearGradient>
+      <radialGradient id="glowsky-${gid}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${u.c2}" stop-opacity="0.55"/><stop offset="100%" stop-color="${u.c2}" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="glowgnd-${gid}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${l.c2}" stop-opacity="0.5"/><stop offset="100%" stop-color="${l.c2}" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect x="0" y="0" width="300" height="220" fill="url(#sky-${gid})"/>
+    <path d="M0,138 Q75,108 150,132 T300,120 L300,220 L0,220 Z" fill="url(#gnd-${gid})"/>
+    <ellipse cx="150" cy="62" rx="115" ry="72" fill="url(#glowsky-${gid})"/>
+    <ellipse cx="150" cy="178" rx="115" ry="55" fill="url(#glowgnd-${gid})"/>
+  </svg>`;
+  const emojiHtml = `<div class="oracle-half oracle-half-sky"><div class="oracle-emoji oracle-emoji-sky">${u.emoji}</div></div><div class="oracle-half oracle-half-ground"><div class="oracle-emoji oracle-emoji-ground">${l.emoji}</div></div>`;
+  return `<div class="oracle-wrap"><div>
+    <div class="oracle-card">
+      <div class="oracle-art">
+        ${scene}
+        ${emojiHtml}
+        <div class="oracle-symbol">${symbolHtml}</div>
+      </div>
+      <div class="oracle-band">
+        <span class="oracle-eng">— ${eng} —</span>
+        <span class="oracle-num">${String(hex.n).padStart(2,'0')}</span>
+      </div>
+      <div class="oracle-info">
+        <div class="oracle-quote">${hex.judgment}</div>
+        <div class="oracle-hanzi-box">
+          <div class="oracle-hanzi">${hex.name}</div>
+        </div>
+      </div>
+      <div class="oracle-fullname">${hex.title}</div>
+    </div>
+    ${changeToHtml}
+  </div></div>`;
+}
+
+// ────────────────────────────────────────────────────────────
+// 64 卦完整解讀資料庫
+// key 格式：六位 0/1 字串，順序為初爻→二爻→三爻→四爻→五爻→上爻（陽爻=1，陰爻=0）
+// 每卦欄位：
+//   judgment   卦辭原意闡述
+//   meaning    整體運勢解讀
+//   advice     行事建議
+//   career     事業解讀
+//   love       感情解讀
+//   wealth     財運解讀
+//   changeNote 變卦關係的進階說明
+// ────────────────────────────────────────────────────────────
+// 每卦卦辭中的古文，加上一句白話翻譯，方便不熟悉文言文的人閱讀
+const JUDGMENT_GLOSS = {
+  1:"大為亨通，非常吉利，但要守持正道。",
+  2:"大為亨通，像母馬一樣柔順地守持正道最為有利。",
+  3:"大為亨通，宜守正道；不要輕舉妄動，但如果要前進做事，適合尋求輔佐與幫手。",
+  4:"亨通。不是我去求年幼無知的人，而是他主動來向我求教（誠心求教才有效果）。",
+  5:"心懷誠信，前途光明亨通，守持正道就會吉祥。",
+  6:"心中有誠信卻遭壓抑阻塞；過程中保持警惕謹慎就能得吉，但若糾纏到底、久訟不休終究不利。",
+  7:"守持正道，由德高望重的長者領軍才能吉祥，沒有災咎。",
+  8:"吉祥。再三確認能夠長久守持正道，就沒有災咎。",
+  9:"亨通。天空布滿濃雲卻還沒下雨，條件正在醞釀但時機尚未成熟。",
+  10:"踩到老虎的尾巴，老虎卻沒有咬人，亨通——比喻雖處險境仍能謹慎化險為夷。",
+  11:"小的（陰）離去、大的（陽）到來，吉祥亨通。",
+  12:"閉塞不通，不利於君子固守正道，大的離去、小的到來。",
+  13:"與人在曠野中結合共事，亨通；適合渡過大河（成就大事），也適合君子固守正道。",
+  14:"大為亨通。",
+  15:"亨通，君子能夠善始善終。",
+  16:"適合建立諸侯、出兵征伐（積極有所作為）。",
+  17:"大為亨通，適宜守持正道，沒有災咎。",
+  18:"大為亨通，適合渡過大河（成就大事）；事前事後都要謹慎思慮、妥善規劃。",
+  19:"大為亨通，適宜守持正道；但盛極之後（到了後期）會有凶險，提醒居安思危。",
+  20:"就像祭祀時洗淨雙手、還沒獻上祭品的那一刻，莊重肅穆，令人心生敬意。",
+  21:"亨通。適合用來處理刑獄訴訟、排除障礙之事。",
+  22:"亨通。小有利於前往行事。",
+  23:"不利於有所行動、前往做事，宜靜守待時。",
+  24:"亨通。出入沒有阻礙損傷，朋友前來也沒有災咎，往復循環是常道，過一段時間就會回復生機。",
+  25:"大為亨通，適宜守正；如果行為不正就會有災禍，不利於有所前往。",
+  26:"適宜守正，不在家吃閒飯、出仕任事才吉祥，適合渡過大河（成就大事）。",
+  27:"守正就吉祥。觀察頤養之道，要靠自己謀求食物、養活自己。",
+  28:"房屋的棟樑彎曲了、負荷超過常態，但適合有所前往行事，亨通。",
+  29:"重重險陷接連而來，但只要心懷誠信，內心便能亨通。",
+  30:"適宜守正，亨通；像畜養母牛一樣柔順，吉祥。",
+  31:"亨通，適宜守正；娶妻是吉祥的（比喻心意相通、感應相合）。",
+  32:"亨通，適宜守正，沒有災咎，適合有所前往。",
+  33:"亨通，小有利於守正（比喻適時退避，明哲保身）。",
+  34:"適宜守持正道（提醒力量強盛時更要謹守分寸）。",
+  35:"安邦的諸侯獲賜眾多車馬，備受賞賜恩寵，比喻步步高升、備受重用。",
+  36:"在艱難的處境中，適宜守持正道。",
+  37:"適宜女子固守正道，引申為齊家之道、各守本分。",
+  38:"小事情尚可吉祥（大事則因意見分歧而較難成）。",
+  39:"適宜前往西南方，不利於前往東北方——比喻順著平易的方向走，避開險阻。",
+  40:"適宜前往西南方；如果沒有進一步的事要辦，回歸平復才吉祥。",
+  41:"心懷誠信，大為吉祥，沒有災咎，可以守正，適合有所前往。",
+  42:"適合有所前往，適合渡過大河（成就大事）。",
+  43:"在朝廷之上公開宣布除惡的決心，誠心疾呼仍要提防危險。",
+  44:"女子過於強勢主動，不宜娶這樣的女子——比喻不宜輕率接受意外的誘惑或結合。",
+  45:"亨通，君王親臨宗廟，比喻凝聚人心、眾人聚集一堂。",
+  46:"大為亨通，適合去拜見德高望重的人，不用擔憂，向前邁進是吉祥的。",
+  47:"亨通，德行高尚的人守正才能吉祥，沒有災咎；但這時說的話別人不容易相信。",
+  48:"城邑可以搬遷改建，水井卻不會跟著改變，用水的人來來去去，井水本身沒有損失也沒有增加。",
+  49:"要等到時機成熟才能取信於人，大為亨通，適宜守正。",
+  50:"大為吉祥，亨通。",
+  51:"亨通。雷聲震動而來令人恐懼戒慎，但事後仍能談笑自若、恢復鎮定。",
+  52:"把注意力停在感受不到自身的地方，走在庭院中也感覺不到旁人存在——比喻心無雜念、靜定自守。",
+  53:"女子出嫁循序漸進才吉祥，適宜守正（比喻按部就班、穩紮穩打）。",
+  54:"貿然前進會有凶險，沒有任何好處（比喻名分不正、行事衝動易招困擾）。",
+  55:"亨通，君王能達到豐盛之境；不用憂慮，最適合的時機就像太陽正中天一樣。",
+  56:"小有亨通，在外行旅時守持正道才會吉祥。",
+  57:"小有亨通，適合有所前往，適合拜見德高望重的人。",
+  58:"亨通（以誠相待、和悅待人則諸事順利）。",
+  59:"亨通。君王親臨宗廟凝聚人心，適合渡過大河（成就大事）。",
+  60:"亨通，但如果節制過了頭、變成苦行，就無法長久堅持下去。",
+  61:"誠信的感化力連遲鈍的豬和魚都能感應而吉祥，適合渡過大河（成就大事）。",
+  62:"亨通，適宜守正；可以做小事，不適合做大事。",
+  63:"小的方面能亨通，適宜守正；開始時吉祥，最後卻容易生亂，提醒居安思危。",
+  64:"亨通。小狐狸快要渡過河流時卻把尾巴沾濕了，沒有任何好處，比喻功虧一簣、仍需謹慎到底。",
+};
+
+const HEXAGRAMS = {
+  "111111":{n:1,name:"乾",title:"乾為天",
+    judgment:"乾，元亨利貞。六爻皆陽，剛健不息，象徵天道運行，自強不止。",
+    meaning:"剛健自強，龍飛在天。此卦象徵純陽至剛，萬物之始。所問之事大吉大利，宜積極進取，發揮才能。",
+    advice:"天行健，君子以自強不息。全力以赴，時機成熟，必能成就大業。",
+    career:"事業運極旺，正是衝刺、開創、領導的時機。適合主動爭取機會、提出企劃或承擔重任，但須注意「亢龍有悔」之戒，過於剛強易招忌，宜剛中帶柔，廣納建言。可以主動向主管提案、爭取重要專案的主導權，但記得多聽取團隊成員的意見，避免決策過於獨斷。",
+    love:"感情上展現自信與主動的一面，單身者適合勇敢表達心意；已有伴侶者宜留意是否過於強勢主導關係，多給對方表達空間，感情更能長久。可以主動邀約、明確表達心意，但也要記得多詢問對方的想法與感受，避免單方面主導所有決定。",
+    wealth:"財運旺盛，投資與事業收益皆有上升趨勢，宜趁勢而為，但需避免因自信過盛而冒進，可適度分散風險、預留退路。具體來說，可分批建立部位、預留至少三到六個月的緊急預備金，並定期檢視資產配置比例，避免單押一項標的。",
+    changeNote:"乾卦六爻全陽，極盛之象。若有變爻，多由盛轉向需要調節之卦，提醒在巔峰時更要謙退守成，物極必反是天理。"},
+  "000000":{n:2,name:"坤",title:"坤為地",
+    judgment:"坤，元亨，利牝馬之貞。六爻皆陰，柔順承載，象徵大地包容萬物，以靜制動。",
+    meaning:"柔順厚德，大地包容。此卦象徵純陰至柔，萬物之母。凡事宜順勢而為，守柔以待，不宜急進。",
+    advice:"地勢坤，君子以厚德載物。以寬容之心待人，默默耕耘，水到渠成。",
+    career:"宜採取輔助、配合的角色，少出頭多協作，反能獲得長官與同事的信任。此階段不適合單打獨鬥開創新局，踏實累積經驗與人脈更為有利。可以主動承接支援性工作、協助團隊補位，累積口碑與信任，這階段的努力會為未來的機會鋪路。",
+    love:"感情上宜溫柔包容，多體貼對方需求，不強求主導權。單身者適合以柔軟身段與真誠態度相處，感情自然而然會有進展。可以透過主動關心對方生活小事、給予實質支持來加溫關係，不需要急著要求對方回應或表態。",
+    wealth:"財運平穩，適合穩健理財、儲蓄累積，不宜貿然投機或大筆借貸。守成比開拓更適合此時運勢。可優先償還高利率負債、充實緊急預備金，現金流的穩健比追求報酬率更重要。",
+    changeNote:"坤卦六爻全陰，極柔之象。若有變爻，象徵由靜轉動、由蓄勢轉為行動的契機，提醒柔順之中也要保有原則與底線。"},
+  "100010":{n:3,name:"屯",title:"水雷屯",
+    judgment:"屯，元亨利貞，勿用，有攸往，利建侯。象徵萌芽初生，雖艱難卻充滿生機。",
+    meaning:"萬事起頭難，如草木破土而出。初創之際困難重重，但生機蓬勃，前途光明。",
+    advice:"勿輕率冒進，廣納賢才，穩紮穩打。困難是暫時的，堅持必有轉機。",
+    career:"正值創業或新職的起步階段，難免遭遇阻力與資源不足，但這是必經過程。建議尋求有經驗的夥伴或導師協助，切勿單獨硬撐，逐步建立基礎為要。初期進度緩慢是正常現象，建議找一位資深同事或導師定期請益，並把每個階段的小成果記錄下來，累積信心。",
+    love:"感情剛起步或剛經歷變化，雙方仍在磨合適應期,可能有溝通不順、誤解叢生的情況。耐心經營、不急於定論，關係才能穩固成長。溝通不順時不妨放慢腳步，約定固定的相處時間慢慢建立默契，不需要急著解決所有分歧。",
+    wealth:"財運處於播種期,投入容易但回收尚需等待,不宜期望短期暴利。宜將資金用於長期布局,並保留週轉餘裕應付初期波動。初期資金卡關、周轉不順屬正常現象，建議保留至少半年的週轉資金，避免因短期壓力而賤賣資產。",
+    changeNote:"屯卦象徵初生的艱難,若有變爻轉向其他卦象,多代表困境即將打開突破口,提醒此刻的堅持終將迎來轉機,切勿半途放棄。"},
+  "010001":{n:4,name:"蒙",title:"山水蒙",
+    judgment:"蒙，亨。匪我求童蒙，童蒙求我。象徵蒙昧未明，需啟蒙開智，誠心求教方能得益。",
+    meaning:"蒙昧初啟，如孩童求學。此時需虛心求教，不可固執己見，宜廣開思路。",
+    advice:"謙遜學習，尋師訪友，方能解惑開竅。",
+    career:"目前對局勢或專業領域的掌握尚不充分,容易判斷失準。此時最重要的是放下身段學習,主動請教資深前輩或專家,切忌自以為是強行決策。可以主動向資深同事或主管請教具體做法，或報名相關培訓課程，先建立基本功再嘗試獨立決策。",
+    love:"對於感情的認知或對對方的了解仍不夠深入,容易有誤判或一頭熱的情況。建議多花時間溝通理解,不要急著下結論或做重大決定。可以透過多次自然的相處與對話，逐步了解對方的價值觀與生活習慣，而非只憑第一印象或他人轉述就下判斷。",
+    wealth:"財務知識或市場資訊掌握不足,投資前應多做功課、請教專業意見,避免因資訊不對等而誤判風險,貿然進場容易吃虧。可先從小額試單累積經驗，避免一開始就投入大筆資金於不熟悉的商品，並建立自己的投資筆記逐步修正判斷。",
+    changeNote:"蒙卦提醒當前認知有限,若占得變卦,代表透過學習與請教後局勢將逐漸清晰,耐心積累知識是通往下一階段的關鍵。"},
+  "111010":{n:5,name:"需",title:"水天需",
+    judgment:"需，有孚，光亨，貞吉。象徵雲行於天，待時而動，誠信靜候方能光明亨通。",
+    meaning:"等待時機，不可輕舉妄動。如雲之待雨，萬事俱備只欠東風，需耐心等候。",
+    advice:"保持信心，時機未至強求無益，靜候良機。",
+    career:"目前條件尚未成熟,提案或計劃宜先擱置觀察,不要急於求成。可利用這段時間充實能力、準備資源,待機會明朗時便能迅速把握,事半功倍。可以利用這段時間補強技能、準備資料，先設想好提案的時機點，等條件成熟再一次到位地出手。",
+    love:"感情的進展需要時間醞釀,不宜操之過急逼對方表態或催促進度。保持耐心與信任,順其自然發展,水到渠成時自有美好結果。可以先從日常關心與陪伴做起，讓感情自然醞釀，避免用逼問「我們到底算什麼」的方式加速進度。",
+    wealth:"資金或投資時機尚未成熟,建議先觀察市場動向,不急於進場。耐心等待更明確的訊號,可避免因急躁而做出錯誤的財務決策。可利用等待期做好功課與資金準備，例如設定進場價位與條件，一旦訊號明確再果斷行動，而非提前搶進。",
+    changeNote:"需卦核心在於等待,若占得變卦,通常意味著等待期即將結束,行動的時刻已經接近,提醒做好最後準備、隨時可以出發。"},
+  "010111":{n:6,name:"訟",title:"天水訟",
+    judgment:"訟，有孚窒，惕中吉，終凶。象徵爭訟糾紛，雖中途謹慎可獲吉，但久訟終究不利。",
+    meaning:"訟事紛爭，是非難辨。此時宜和解，不宜爭訟，見好就收，中途而止為吉。",
+    advice:"以和為貴，退一步海闊天空，莫意氣用事。",
+    career:"職場上可能出現意見對立、利益衝突或合約糾紛等情況。建議盡量透過協商化解爭端,避免訴諸激烈對抗或法律途徑,適時讓步反而能保住長遠關係與名聲。遇到爭議時建議先私下溝通釐清立場，必要時可請主管或人資介入協調，避免在會議上正面衝突。",
+    love:"感情中容易因誤解或立場不同產生爭執與冷戰。切記爭吵時保持理性,別把話說絕,願意先低頭溝通的一方往往能化解危機、維繫感情。吵架後建議留一段冷靜時間再溝通，避免在情緒最高點說出分手或翻舊帳等重話，之後好好把話說開。",
+    wealth:"財務上可能涉及債務糾紛或合夥分配不均的爭議。建議尋求第三方協調或專業意見,避免硬碰硬導致兩敗俱傷,適度妥協才能減少損失。任何合約、借貸文件務必留存書面紀錄，必要時諮詢律師或會計師，及早釐清權責能避免日後更大糾紛。",
+    changeNote:"訟卦警示爭端不宜久持,若占得變卦,代表透過和解或讓步,糾紛將逐漸平息,提醒及早抽身比堅持到底更有智慧。"},
+  "010000":{n:7,name:"師",title:"地水師",
+    judgment:"師，貞，丈人吉，无咎。象徵統御眾人，需有紀律法度與賢能領導，方能出師有名。",
+    meaning:"統帥之象，需有紀律與謀略。凡事需有計劃，用人得當，方能成事。",
+    advice:"端正心志，以德服眾，有序進退，必能克敵制勝。",
+    career:"適合擔負團隊管理或統籌規劃的角色,但須建立明確制度與分工,而非單憑個人意志行事。用人唯才,賞罰分明,團隊才能發揮最大戰力。可以建立明確的分工表與檢核機制，定期開會追蹤進度，賞罰分明能讓團隊更有方向感。",
+    love:"感情中可能需要扮演主導或規劃的角色,但切忌過於專制獨斷。建立彼此尊重的相處規則,比一味要求對方服從更能維繫長久關係。可以和對方一起討論、共同訂定相處的默契與底線，而非單方面訂規矩要求對方遵守。",
+    wealth:"適合有計劃、有紀律的理財方式,例如設定明確預算與投資策略,避免雜亂無章的資金調度。團隊或合夥投資需明確分工與責任歸屬。可設定每月固定投資金額與停利停損點位，並定期檢討執行成效，紀律化的操作比臨時起意更能累積成果。",
+    changeNote:"師卦講求紀律與統御,若占得變卦,意味著經過一番整頓與部署後,局勢將從紛亂走向有序,提醒持續貫徹計劃方能見效。"},
+  "000010":{n:8,name:"比",title:"水地比",
+    judgment:"比，吉。原筮元永貞，无咎。象徵親近依附，眾人歸心，原本誠信即可長久無憂。",
+    meaning:"親比聯合，相互扶持。宜結交朋友，合作共事，孤立無援則凶，團結則吉。",
+    advice:"廣結善緣，與人合作，共創佳績。",
+    career:"此時人脈與團隊合作格外重要,單打獨鬥難以成事,主動尋求盟友、建立合作關係將大有助益。誠心對待夥伴,自然能凝聚向心力共創佳績。可以主動參與跨部門合作或建立業界人脈，誠心對待每一位夥伴，會比單打獨鬥更快看到成果。",
+    love:"感情上重視彼此依存與相互支持的關係,單身者適合透過朋友圈或社交活動認識對象;已有伴侶者宜加強情感連結與共同參與，增進親密感。可以主動安排固定的相處時間或共同活動加強情感連結，單身者也適合透過信任的朋友介紹認識對象。",
+    wealth:"適合合夥投資或團隊集資的方式累積財富,單靠個人力量較難有突破。慎選合作對象、建立互信機制,共同分享資源與風險。合資前務必明訂出資比例、獲利分配與退場機制的書面協議，把醜話說在前面，反而更能長久合作。",
+    changeNote:"比卦強調團結合作的力量,若占得變卦,代表合作關係將進一步深化或轉型,提醒持續用誠信維繫夥伴情誼，方能長保和諧。"},
+  "111011":{n:9,name:"小畜",title:"風天小畜",
+    judgment:"小畜，亨。密雲不雨，自我西郊。象徵力量尚小，需積累蓄勢，時機未到不宜強求。",
+    meaning:"小有積蓄，暫受阻滯。力量尚小，宜積累蓄勢，不宜大動作，積少成多。",
+    advice:"蓄積能量，等待突破，小步前進，積累資本。",
+    career:"目前資源與實力仍有限,大型計劃宜暫緩,先從小處著手累積成果與經驗。穩步漸進、量力而為,逐漸壯大自身條件後再尋求更大突破。可以先從小型專案或試點計畫累積成果，再拿實際數據去爭取更多資源，穩紮穩打地擴大規模。",
+    love:"感情正處於小幅進展但尚未明朗的階段,可能因外在因素受到些許阻礙。不需強求立即的結果,持續用心經營小細節,感情會逐步加溫。可以從小小的關心與問候開始累積，例如簡單的訊息互動或小約會，不需要急著要求關係升溫或表態。",
+    wealth:"財運呈現小幅累積的狀態,不宜大手筆投資或借貸擴張。建議從穩健的小額投資開始,逐步壯大資本,耐心等待更佳時機。可採取定期定額或分批加碼的方式緩步布局，不需要為了追求快速獲利而動用槓桿或借貸。",
+    changeNote:"小畜卦象徵蓄積待發,若占得變卦,通常表示累積已達一定程度,即將迎來能量釋放的時刻，提醒做好準備迎接下一階段行動。"},
+  "110111":{n:10,name:"履",title:"天澤履",
+    judgment:"履虎尾，不咥人，亨。象徵身處危境仍能謹守正道而化險為夷，謙遜守禮是關鍵。",
+    meaning:"踩在虎尾上，謹慎行事。此卦警示危險存在，需戰戰兢兢，謹言慎行。雖然身處險境，但若保持禮貌與正道，最終能化險為夷。",
+    advice:"以誠待人，步步為營，謙遜有禮，必能履險如夷。",
+    career:"工作環境或局勢存在一定風險與壓力,稍有不慎容易引發麻煩。建議行事謹慎、按規矩來,對上對下保持禮貌與分寸,反而能安然度過危機時刻。處理敏感事務前，建議先確認流程與規範是否遵守，對上級保持適度尊重與匯報，減少不必要的誤會。",
+    love:"感情中可能面臨敏感或棘手的處境,例如家人反對、第三者介入等。此時切忌衝動行事,以誠懇謙和的態度面對問題,方能化解危機。面對家人反對或第三者介入等敏感狀況，建議先私下與當事人坦誠溝通，避免在情緒下做出衝動的公開表態。",
+    wealth:"財務操作上存在潛藏風險,例如合約條款或市場波動。務必謹慎審視每個細節,遵守規範與底線,可避免因疏忽而招致損失。簽約或下單前逐條檢視條款與費用細節，尤其留意違約金、手續費等隱藏成本，寧可多花時間確認，也不要事後才發現問題。",
+    changeNote:"履卦提醒身處險境仍需謹守正道,若占得變卦,意味著謹慎應對後危機將逐步化解,提醒此刻的小心翼翼終將換來平安順遂。"},
+  "111000":{n:11,name:"泰",title:"地天泰",
+    judgment:"泰，小往大來，吉亨。象徵天地交融、陰陽調和，是萬事通達的極吉之象。",
+    meaning:"天地交泰，萬物通暢。此卦大吉，天地人和，諸事順利，財運亨通，吉祥如意。",
+    advice:"把握機遇，積極進取，此乃黃金時期，大展宏圖。",
+    career:"事業運勢處於上升通暢的黃金時期,各方資源與人脈皆能順利匯聚,適合大膽提案、擴展版圖或爭取升遷。但仍須記得居安思危,盛時更要謙遜。可以趁此時機主動提案、爭取升遷或跨部門合作，但也要記得建立風險備案，避免順風時期過度樂觀。",
+    love:"感情關係和諧融洽,雙方溝通順暢、心意相通,是進一步發展(告白、求婚、共同生活)的絕佳時機,務必好好珍惜這段順遂的緣分。若有告白、求婚或同居等重要決定，這段時間是很好的時機，可以放心跨出下一步。",
+    wealth:"財運亨通,投資與收入皆有顯著成長空間,適合積極佈局、擴大格局。建議趁勢累積資產,但同時預留風險準備金，以備未來不時之需。可趁勢提高投資比重或爭取加薪、升遷等機會，但建議設定停利點與風險上限，避免順風時期過度樂觀而失去戒心。",
+    changeNote:"泰卦象徵極盛通達,若占得變卦,需留意「泰極否來」的天理,提醒在順境中持續保持謙遜與危機意識,才能延續這份好運。"},
+  "000111":{n:12,name:"否",title:"天地否",
+    judgment:"否之匪人，不利君子貞，大往小來。象徵天地不交、上下隔閡，諸事壅塞不通。",
+    meaning:"天地不交，萬物不通。此時運勢受阻，宜守不宜攻，靜待否極泰來。",
+    advice:"收斂鋒芒，韜光養晦，切勿輕舉妄動，靜待時機。",
+    career:"工作上溝通不順、阻力重重,計劃容易卡關,此時強行推動只會徒增挫折。建議暫緩腳步,先求自保與蓄積實力,待局勢轉好再重新出發。這段時間建議先做好份內工作、減少高風險嘗試，把精力放在累積實力和維繫關係，等待局勢明朗再行動。",
+    love:"感情上可能出現冷淡、隔閡或溝通不良的低潮期,雙方心意難以契合。此時不宜強求或施壓,給彼此一些空間和時間,反而有助化解僵局。這段低潮期不妨先各自專注生活、減少頻繁的訊息追問，給彼此喘息空間，反而更容易讓僵局自然鬆動。",
+    wealth:"財運處於阻滯不通的階段,投資宜保守觀望,避免在低迷時期做出重大財務決定。守住現有資產、減少不必要支出，靜待時機回暖。可優先確保現金水位充足、減少非必要開銷，暫緩大額消費或投資決策，等待明確的止跌訊號出現再行動。",
+    changeNote:"否卦象徵閉塞不通的低谷,若占得變卦,正是「否極泰來」的轉機訊號,提醒只要耐心堅守,困境終將迎來轉好的曙光。"},
+  "101111":{n:13,name:"同人",title:"天火同人",
+    judgment:"同人于野，亨。利涉大川，利君子貞。象徵眾人志同道合，胸懷開闊方能凝聚共識。",
+    meaning:"志同道合，攜手並進。廣結善緣，集眾人之力，凡事宜光明正大，公開透明。",
+    advice:"以誠相待，開誠布公，眾志成城，共赴目標。",
+    career:"適合尋求理念相近的夥伴共同合作,公開透明的溝通方式更能獲得團隊信任。集眾人之力推動計劃,比單獨行事更容易突破現有格局。可以主動發起跨部門或跨團隊的合作專案，保持資訊公開透明，讓大家清楚彼此的角色與貢獻。",
+    love:"與伴侶或對象在價值觀、興趣上頗有共鳴,這是建立深厚情感連結的良好基礎。坦誠分享彼此想法,關係將更加穩固且充滿默契。可以多安排一起參與共同興趣的活動，透過分享彼此真實想法，讓這份共鳴轉化為更深的情感連結。",
+    wealth:"適合與理念相同的夥伴共同投資或創業,集資集力往往比單打獨鬥更有效益。財務往來保持公開透明,有助於建立長久的合作信任。合作對象宜慎選理念相近、誠信可靠者，財務往來建議簽訂正式合約並保持定期對帳，透明化能大幅降低日後糾紛。",
+    changeNote:"同人卦強調志同道合的凝聚力,若占得變卦,代表合作關係即將進入新的發展階段,提醒持續秉持開誠布公的態度經營夥伴關係。"},
+  "111101":{n:14,name:"大有",title:"火天大有",
+    judgment:"大有，元亨。象徵光明照於上、剛健蘊於下，大有收穫，諸事豐盛亨通。",
+    meaning:"大有收穫，豐盛之象。此卦大吉，財運旺盛，事業有成，但需謙遜不可驕傲。",
+    advice:"居安思危，廣施恩惠，以寬容心待人，方能長久保有成就。",
+    career:"事業成果豐碩,努力終於開花結果,適合享受成就並擴大影響力。但切記保持謙遜,懂得分享榮耀與資源給團隊成員,才能維持長久的好局面。可以主動肯定並公開表揚團隊成員的貢獻，同時規劃下一階段目標，避免因滿足現況而停止成長。",
+    love:"感情生活豐盈美滿,彼此關係穩固且充滿幸福感。此時宜珍惜當下、心懷感恩,避免因得意而忽略對方感受,持續用心經營這份美好。可以固定安排感恩或回顧關係的時刻（例如紀念日），提醒自己不因習慣而忽略對方的付出。",
+    wealth:"財運極為旺盛,收入與資產均有顯著增長。建議妥善規劃資源分配,適度回饋或投資於長遠發展,避免因驕傲自滿而揮霍無度。建議提撥部分獲利做為公益或回饋，同時強化風險控管與稅務規劃，才能讓豐收成果真正落袋為安。",
+    changeNote:"大有卦象徵豐盛極致,若占得變卦,提醒「滿招損，謙受益」的道理,需謹防盛極而衰，及早為下一階段做好準備與布局。"},
+  "001000":{n:15,name:"謙",title:"地山謙",
+    judgment:"謙，亨，君子有終。象徵謙遜居下，內藏剛德於柔順之中，是至吉之卦。",
+    meaning:"謙遜之道，吉祥之本。此卦至吉，謙遜有禮必受人尊重，事事順遂。",
+    advice:"低調行事，不驕不躁，謙虛使人進步，必有好報。",
+    career:"以謙遜低調的態度做事,反而更能贏得同事與上級的信賴與尊重。功勞不必獨佔,適度禮讓與分享,長遠來看更有利於職場人際與升遷機會。功勞達成時可以主動把榮譽分給團隊或協作者，這種低調謙遜的態度，長期下來會讓人更願意與你合作。",
+    love:"在感情中放下身段、多體諒對方,願意傾聽與妥協,能讓關係更加融洽長久。謙遜並非軟弱,而是成熟穩重的表現,對方會更加珍惜你。吵架或意見不合時，可以先聆聽對方的立場再表達自己的想法，主動示弱不代表輸，反而更容易化解僵局。",
+    wealth:"理財態度宜謹慎保守,不誇耀財富、不炫耀成功,踏實累積反而更能長保財富。低調行事亦能避免招來不必要的覬覦或紛爭。可將多餘資金優先用於償還負債或充實保險保障，而非追求高調的消費或炫耀性投資，厚植根基比表面風光更重要。",
+    changeNote:"謙卦至吉至善,若占得變卦,代表謙遜的德行終將獲得相應的回報與提升,提醒持續保持低調務實的態度，福報自然降臨。"},
+  "000100":{n:16,name:"豫",title:"雷地豫",
+    judgment:"豫，利建侯行師。象徵雷出地上、奮發振動，喜悅順時而動，宜有所作為。",
+    meaning:"歡欣豫樂，順勢而行。此時萬事如意，宜積極行動，但需防止過度享樂。",
+    advice:"把握時機，勇於行動，但需有節制，防止懈怠放縱。",
+    career:"工作氛圍順遂愉快,團隊士氣高昂,是推動新計劃、爭取資源的好時機。可順勢而為積極行動,但切勿因一時得意而鬆懈，仍須保持紀律。可以趁團隊士氣高昂時推動新專案或提案，但也要建立明確的檢核點，避免因氣氛熱絡而忽略細節品質。",
+    love:"感情關係輕鬆愉快,雙方互動充滿歡笑與默契,適合安排約會、旅行或慶祝活動增進感情。但也要留意別因過度玩樂而忽略了深度溝通。可以安排小旅行、聚餐等輕鬆活動增進感情，同時也要留一些安靜相處的時間深入聊聊彼此的想法。",
+    wealth:"財運順遂,適合適度享受生活成果,但須節制消費避免過度揮霍。保持理性管理財務,在歡愉之中仍要為未來留有規劃與儲備。享受成果的同時建議設定消費上限，並持續提撥固定比例做長期儲蓄或投資，避免歡愉之後財務出現缺口。",
+    changeNote:"豫卦象徵順勢而動的喜悅,若占得變卦,提醒在歡愉之中仍要保持警覺,適時收斂放縱的心態,才能讓好運延續而不至樂極生悲。"},
+  "100110":{n:17,name:"隨",title:"澤雷隨",
+    judgment:"隨，元亨利貞，无咎。象徵順應時勢，隨而動，因勢利導方能無往不利。",
+    meaning:"隨順時機，順應潮流。此時宜順勢而為，跟隨大眾，不可逆流而上。",
+    advice:"審時度勢，靈活應變，隨機而動，方能把握良機。",
+    career:"目前局勢變化快速,固守舊有方式恐難跟上腳步。建議保持彈性,觀察趨勢並適時調整策略,跟隨市場或團隊的步調行動,反而能事半功倍。可以定期關注產業動態與公司策略方向，保持彈性調整自己的工作方式，不需要堅持舊有的做法。",
+    love:"感情中宜順應對方的節奏與需求,不必堅持己見或強求按自己的方式進行。靈活調整相處模式,關係會更加融洽自然地發展。可以多詢問對方的想法與偏好、依對方的步調調整相處方式，而不是堅持照自己原本的計畫進行。",
+    wealth:"財運與市場趨勢密切相關,建議密切關注大環境變化並隨之調整投資策略,不宜逆勢操作,順勢而為才能掌握獲利機會。可定期關注產業趨勢與政策動向，適時調整資產配置比例，不需要堅持原有立場，靈活應變才能跟上局勢變化。",
+    changeNote:"隨卦講求順應變化,若占得變卦,意味著局勢即將出現新的方向,提醒持續保持敏銳的觀察力，隨機應變才能立於不敗之地。"},
+  "011001":{n:18,name:"蠱",title:"山風蠱",
+    judgment:"蠱，元亨，利涉大川。先甲三日，後甲三日。象徵積弊已深，需徹底整治才能撥亂反正。",
+    meaning:"積弊已久，需改革整治。此卦示意有問題需解決，勇於改革，去舊布新。",
+    advice:"勇於面對問題，積極改革，撥亂反正，必有收穫。",
+    career:"工作上可能存在長期積累的問題或弊端,例如流程僵化、人事矛盾。此時應勇於正視並著手改革,雖然過程辛苦,但徹底解決後將煥然一新。建議找時間盤點目前流程或團隊中卡關已久的問題，主動提出改善方案，即使過程繁瑣，也值得徹底處理。",
+    love:"感情中可能有長期未解決的心結或舊有的問題反覆出現。建議坦誠面對並一次性處理,而非一再迴避,才能真正讓關係重獲新生。建議找一個安靜的時間，把一直沒說開的心結攤開來談清楚，而不是每次吵架時又拿出來翻舊帳。",
+    wealth:"財務狀況可能存在過去累積的隱患,如壞帳或不良投資。應趁早整頓盤點,壯士斷腕處理問題資產,才能為未來的財富累積打好基礎。建議進行一次全面的財務健檢，盤點名下資產、負債與保單，主動處理拖延已久的問題，才能讓後續規劃有乾淨的基礎。",
+    changeNote:"蠱卦強調除弊革新,若占得變卦,代表改革行動已開始見效,提醒持續貫徹整頓的決心,舊問題解決後新局面即將展開。"},
+  "110000":{n:19,name:"臨",title:"地澤臨",
+    judgment:"臨，元亨利貞，至于八月有凶。象徵居高臨下、親自督導，盛極之時更需謹慎。",
+    meaning:"居高臨下，親臨其事。此時需主動關心，積極參與，直接管理，大有可為。",
+    advice:"把握現在，積極行動，防患未然，切勿大意。",
+    career:"適合親自督導、實地了解狀況,而非單憑報告做決策。主動關心團隊與細節,能讓計劃推進更加順利,但也要留意盛極必衰的警訊，提前防範。可以安排定期的實地訪查或一對一會議，親自掌握第一手狀況，同時留意團隊是否出現過度自滿的跡象。",
+    love:"感情中宜主動關心對方的生活細節,展現用心與在乎的態度。但也要提醒自己別過度干涉或控制,適度的關心才是長久經營的關鍵。可以主動詢問對方近況、關心生活細節，但也要留意給對方保有個人空間，避免讓關心變成過度掌控。",
+    wealth:"財運正值上升期,適合積極參與投資決策過程,而非完全交由他人代管。然而需留意市場過熱的風險,提前做好風險控管準備。可以親自參與投資決策的討論與監督，但也要留意市場過熱、追高的風險，適時設定停利點，避免樂極生悲。",
+    changeNote:"臨卦象徵當下大有可為,若占得變卦,提醒盛極必有轉折的可能,務必在順境中超前部署，才能避免後續可能出現的波動。"},
+  "000011":{n:20,name:"觀",title:"風地觀",
+    judgment:"觀，盤而不薺。象徵在上者以德教化於下，需先觀察省思，方能明辨進退。",
+    meaning:"觀察審視，冷靜思考。此時需退一步觀察全局，深思熟慮，不宜倉促行動。",
+    advice:"以誠敬的態度觀察思考，廣納信息，方可決策。",
+    career:"目前不宜急於表態或行動,建議先退一步觀察整體局勢、收集更多資訊,再做出判斷。低調觀望比急躁出擊更能掌握全局優勢。可以先蒐集更多市場、產業或內部數據，做足功課後再提出建議或決策，避免倉促表態。",
+    love:"感情上宜多觀察對方的言行與真心,不要被表面的甜言蜜語迷惑。透過冷靜的觀察了解對方本質,才能做出正確的判斷與選擇。可以多花時間觀察對方在不同情境下的言行是否一致，而非只看對方對自己好不好，才能更全面判斷這段關係。",
+    wealth:"財務決策前應仔細觀察市場走向與相關數據,避免衝動下單。多方蒐集資訊、謹慎評估後再行動,能有效降低投資風險。可多花時間研究財報、產業報告與總體經濟數據，建立自己判斷的邏輯架構，再進場才不會人云亦云。",
+    changeNote:"觀卦強調靜觀其變的智慧,若占得變卦,代表觀察期即將結束,清晰的方向已浮現,提醒準備將觀察所得轉化為具體行動。"},
+  "100101":{n:21,name:"噬嗑",title:"火雷噬嗑",
+    judgment:"噬嗑，亨。利用獄。象徵咬合除障，遇阻礙需果斷處理，方能暢通無阻。",
+    meaning:"咬噬通達，克服障礙。遇到阻礙需果斷處理，不可拖延，有決斷方可成事。",
+    advice:"明辨是非，果斷行事，清除障礙，事情自然通暢。",
+    career:"工作上可能遇到明顯的阻礙或障礙(如審核延遲、競爭對手),建議積極正面處理而非拖延迴避。果斷採取行動清除問題,事情才能順利推進。遇到明確的阻礙（如審核延遲、對手競爭）時，建議直接找相關窗口確認狀況，主動跟進解決，而非被動等待。",
+    love:"感情中可能出現具體的矛盾或誤會需要解決,例如第三方介入或溝通障礙。應勇於面對並果斷處理,拖延只會讓問題惡化，及早解決才能恢復順暢。發現問題（如第三者介入或誤會）時，建議直接找對方當面談清楚，避免透過他人轉達或冷戰拖延。",
+    wealth:"財務上可能遇到合約糾紛或催收問題,需要果斷透過正當途徑(法律、協商)解決,切勿心存僥倖拖延,以免損失擴大。面對積欠款項或違約情況，建議保留完整的證據與往來紀錄，必要時透過法律途徑追討，拖延只會讓對方心存僥倖。",
+    changeNote:"噬嗑卦強調果斷除障的重要性,若占得變卦,代表問題正在被有效處理中,提醒堅定立場、勿心軟猶豫，才能徹底排除障礙。"},
+  "101001":{n:22,name:"賁",title:"山火賁",
+    judgment:"賁，亨。小利有攸往。象徵文飾美化，外表光鮮但仍須以本質為重，不可虛浮。",
+    meaning:"裝飾文飾，外實內需。此卦象徵美麗、裝飾，雖然好看但要注重本質，切勿華而不實。",
+    advice:"可以適度包裝，但內在實力才是關鍵，腳踏實地為上。",
+    career:"適度的形象包裝、企劃簡報的美化有助於提升說服力與好感度,但切記內容與實力才是根本。切勿過度注重表面功夫而忽略實際能力的提升。簡報或提案時可以適度美化呈現方式，但務必確保背後的數據與邏輯經得起檢驗，避免華而不實。",
+    love:"剛開始的吸引可能來自外在條件或第一印象,但長久的感情仍需建立在真誠與內在契合之上。建議多花心思了解對方的內心，而非只看表象。可以透過深入的對話（例如聊聊價值觀、未來規劃）來確認彼此是否真的合適，而不只是停留在外在條件的吸引。",
+    wealth:"投資項目可能外表光鮮亮麗,但要謹慎評估其真實價值與基本面,避免被華麗的包裝或話術所迷惑而做出錯誤的財務決定。評估投資標的時務必查核基本面數據（如財報、現金流），而非只看行銷包裝或市場話題，華麗的外表不等於實際的價值。",
+    changeNote:"賁卦提醒外表與內在需相符,若占得變卦,代表表面之下的真實狀況即將浮現,提醒務必透過深入了解再做最終決定。"},
+  "000001":{n:23,name:"剝",title:"山地剝",
+    judgment:"剝，不利有攸往。象徵陽氣剝落、陰盛陽衰，環境不利，宜守靜待時。",
+    meaning:"剝落脫落，小人得勢。此時環境不利，基礎受到動搖，宜退守隱忍，不宜有大作為。",
+    advice:"順應時勢，暫時隱退，保存實力以度過難關。",
+    career:"職場環境可能面臨不利局面,如裁員、組織重整或小人作祟。此時宜低調行事、保存實力,避免正面衝突,靜待局勢回穩後再圖發展。這段時間建議降低曝光、避免捲入辦公室政治，先保護好自己的核心工作與人際關係，靜待局勢穩定。",
+    love:"感情關係可能正面臨外在壓力或第三者干擾,基礎有被動搖的風險。建議暫時收斂鋒芒,審慎觀察情況變化,不宜在此時做出衝動決定。這段時間建議先觀察情勢、暫緩重大決定（如同居、公開關係），保護好自己再視情況調整下一步。",
+    wealth:"財務狀況可能出現下滑或不利因素侵蝕資產,建議減少風險暴露、保守理財,優先確保現有資源不再流失，度過此低潮期。建議先盤點資產、砍除虧損或高風險部位，將資金集中在較穩健的標的上，優先求穩而非求快速翻本。",
+    changeNote:"剝卦象徵衰退剝落的低谷,若占得變卦,往往意味著「剝極而復」的轉機將至,提醒只要堅持守住底線，否極泰來的時刻終將到來。"},
+  "100000":{n:24,name:"復",title:"地雷復",
+    judgment:"復，亨。出入无疾，朋來无咎。反復其道，七日來復。象徵一陽復始，生機重現。",
+    meaning:"一陽復始，萬物復甦。經歷低潮後轉機出現，生機正在萌芽，前途漸露曙光。",
+    advice:"剛開始好轉，宜循序漸進，不宜急躁擴大，按部就班。",
+    career:"經歷一段低潮之後,事業出現轉機的初步徵兆,例如新機會浮現或人際關係回暖。此時應穩健踏出第一步,循序漸進累積成果，避免操之過急。可以先從小範圍、風險較低的任務重新出發，逐步累積信心與成果，不需要急著證明自己已經完全復原。",
+    love:"感情關係可能在低谷後出現回溫的契機,例如和解或重新開始的機會。應珍惜這個復甦的時刻,以溫和漸進的方式重建彼此的信任與情感。可以主動釋出善意，從簡單的問候或小舉動重新建立聯繫，不需要急著把話說開所有過去的問題。",
+    wealth:"財運開始從谷底回升,雖然幅度尚小但方向正確。建議此時逐步恢復投資與規劃,切勿因急於翻本而貿然加大槓桿或冒險。可以小額、漸進的方式重新恢復投資或消費，先觀察一到兩個週期的成效再逐步加碼，避免一次投入過多資金。",
+    changeNote:"復卦象徵否極泰來的起點,若占得變卦,代表復甦的力道正在增強,提醒持續以穩健踏實的步伐前進,才能讓這份生機真正壯大。"},
+  "100111":{n:25,name:"無妄",title:"天雷無妄",
+    judgment:"無妄，元亨利貞。其匪正有眚，不利有攸往。象徵真實無欺，順應天命，不可妄為。",
+    meaning:"真實不虛，順應天命。不可心存幻想或投機取巧，若有非分之想則容易招致災禍。",
+    advice:"堅守正道，順其自然，不搞小動作，即可逢凶化吉。",
+    career:"工作上應秉持誠信原則,踏實做事,切勿心存僥倖或玩弄手段謀取不正當利益。順應自然規律與正當途徑發展，反而能避開無妄之災。工作上建議按部就班、依循正常流程推進，避免抄捷徑或投機取巧，踏實累積的成果才經得起檢驗。",
+    love:"感情中應以真誠待人,不可心懷算計或玩弄感情。順其自然發展、不刻意強求結果,真心對待對方才是長久關係的基石。與人交往時建議保持真誠一致的態度，不必刻意營造人設或算計對方的反應，順其自然發展的關係最踏實。",
+    wealth:"財務上切忌投機取巧或參與來路不明的高風險項目,堅守正當、踏實的理財方式,方能避免無妄之災帶來的損失。對於報酬過於誘人、來源不明的投資邀約要格外提高警覺，寧可少賺，也不要因貪快而落入詐騙或高風險陷阱。",
+    changeNote:"無妄卦強調順應天命、不可妄為,若占得變卦,提醒即使局勢有變,仍要堅守誠信正直的原則,才能在變化中保持平安。"},
+  "111001":{n:26,name:"大畜",title:"山天大畜",
+    judgment:"大畜，利貞，不家食吉，利涉大川。象徵大量蓄積才德，厚積薄發，可成大器。",
+    meaning:"大量積蓄，蓄勢待發。厚積薄發，廣納博學，積累豐富資源，時機成熟必大展。",
+    advice:"努力充實自己，積累實力，時機到來，一飛衝天。",
+    career:"此階段適合大量充實專業知識與技能,廣納各方資源與人脈,為未來的重大突破做準備。厚積薄發,一旦時機成熟便能一展長才、大有所成。可以主動報名進修課程、爭取專案歷練的機會，廣泛累積人脈與專業知識，為未來的重大機會做足準備。",
+    love:"感情上宜耐心培養默契與信任基礎,深入了解彼此的價值觀與生活方式。打好穩固的根基,將來的關係發展會更加扎實長久。可以透過長時間的相處與對話，逐步了解對方的家庭背景、價值觀與人生規劃，打好基礎後感情會更加牢固。",
+    wealth:"適合進行長期且有規模的投資布局,例如不動產或長期績優標的。耐心累積資本與資源,待時機成熟時將迎來顯著的財富增長。適合將資金分配到不動產、長期績優股或退休金規劃等需要時間累積的標的，並保持定期檢視、不隨意中途出場。",
+    changeNote:"大畜卦象徵大量蓄積待發的力量,若占得變卦,代表積累已達臨界點,提醒準備好迎接力量釋放、大展宏圖的時刻來臨。"},
+  "100001":{n:27,name:"頤",title:"山雷頤",
+    judgment:"頤，貞吉。觀頤，自求口實。象徵頤養之道，需謹言慎食，注重身心調養。",
+    meaning:"頤養之道，注意飲食起居。此卦關係養生保健，宜注重身體調養，節制飲食。",
+    advice:"注意飲食健康，修身養性，言行謹慎，方可吉祥。",
+    career:"工作節奏可能較為緊湊,此時應特別留意自身的身心健康狀態,避免過度勞累而影響工作表現。適度休息調養,才能維持長期穩定的戰鬥力。建議安排固定的休息與運動時間，避免長期高壓工作導致健康亮紅燈，穩定的體力才能支撐長遠的職涯發展。",
+    love:"感情經營需要用心滋養,如同飲食般需要持續且適度的關懷與付出。留意言語上的分寸,避免因口無遮攔而傷害彼此感情。日常相處中可多留意言語措辭，避免因無心的玩笑或抱怨傷了對方的心，用心的小關懷比大禮物更能滋養感情。",
+    wealth:"財務管理上要懂得開源節流,如同調養身體般需要細心規劃日常的收支。避免不必要的鋪張浪費,養成穩健的理財習慣。建議建立固定的記帳習慣，清楚掌握每月收支結構，把不必要的訂閱或小額消費逐一檢視刪減，長期下來效果可觀。",
+    changeNote:"頤卦強調自我滋養與謹言慎行,若占得變卦,提醒在調養過程中局勢將有所轉變,務必持續保持身心與言行的平衡。"},
+  "011110":{n:28,name:"大過",title:"澤風大過",
+    judgment:"大過，棟橈。利有攸往，亨。象徵負荷超過常態，情勢特殊，需有非常之舉應對。",
+    meaning:"大有過失，需矯正。情況超過常規，需有非常之舉，勇於承擔，方可化解。",
+    advice:"勇於承擔，果斷行動，化大過為轉機。",
+    career:"目前承擔的責任或壓力可能超出平常範圍,如重大專案或危機處理。此時需要拿出非常的決心與手段應對,不能用一般方式因循處理。面對超乎尋常的壓力（如重大專案），建議主動尋求額外資源或人力支援，而非獨自硬撐所有責任。",
+    love:"感情中可能面臨超乎尋常的考驗,例如異地、家庭壓力或重大抉擇。需要雙方拿出超越平常的勇氣與承擔,才能共同度過這個關鍵時期。面對重大抉擇（如異地、結婚與否）建議雙方坐下來誠實討論各自的底線與期待，而非各自硬撐或迴避不談。",
+    wealth:"財務上可能面臨較大的風險或負擔,如鉅額投資或債務壓力。此時應審慎評估自身承受能力,必要時採取非常規手段化解危機。若目前負債或投資部位已超出自身能負擔的範圍，建議儘早尋求專業理財或債務協商管道，不要獨自硬撐拖到無法收拾。",
+    changeNote:"大過卦象徵超越常態的負荷與考驗,若占得變卦,代表非常時期即將過去,提醒挺過這段壓力期後局勢將回歸平穩常態。"},
+  "010010":{n:29,name:"坎",title:"坎為水",
+    judgment:"習坎，有孚，維心亨。象徵重重險陷，唯有堅守內心的誠信方能渡過危難。",
+    meaning:"險陷重重，危機四伏。重重困難，需保持信心，以誠信克服危難。",
+    advice:"保持誠信，勇往直前，困難中見真章，終必脫險。",
+    career:"工作上可能接連遭遇困難與挑戰,有如身陷重重險境。此時最重要的是保持內心的篤定與誠信,一步一步穩住腳步,終能渡過難關。連續遇到困難時，建議把注意力放在每天能穩定推進的小步驟上，保持誠信與耐心，逐步累積信任度過難關。",
+    love:"感情可能面臨重重考驗或波折不斷的情況,讓人感到疲憊不安。唯有彼此堅守真心與信任,共同面對困難,才能讓關係挺過風雨。遇到反覆的波折時，建議把注意力放在「彼此還願不願意一起面對」，而非糾結於單一事件的對錯。",
+    wealth:"財務上可能接連遇到不利因素,風險偏高。此時應格外謹慎,堅守誠信原則進行每一筆交易,避免投機取巧讓情況更加惡化。建議暫緩任何高風險或槓桿操作，優先確保緊急預備金到位，遇到不確定的合作邀約，務必多方查證再行動。",
+    changeNote:"坎卦象徵重重險陷的考驗,若占得變卦,代表困境即將出現轉機,提醒堅持到底、保持信心是渡過危難的關鍵所在。"},
+  "101101":{n:30,name:"離",title:"離為火",
+    judgment:"離，利貞，亨。畜牝牛，吉。象徵光明附麗，柔順依附剛正，可成大用。",
+    meaning:"光明文明，附麗之道。此卦象徵光明與智慧，宜發揮才華，展現自我，光芒四射。",
+    advice:"發揮才智，以柔克剛，附麗光明，前途光亮。",
+    career:"正是展現個人才華與專業能力的好時機,適合站上舞台、爭取曝光機會。光明磊落的行事風格能為自己樹立良好聲譽，前途一片光明。可以主動爭取上台簡報、對外發表或負責重點專案等曝光機會，光明磊落地展現實力，能為自己累積良好口碑。",
+    love:"感情中充滿熱情與吸引力,彼此關係如火焰般燃燒著積極正向的能量。適合多展現真實自我，坦誠交流，讓這份光彩持續閃耀。可以多主動表達自己的感受與想法，真誠坦率的交流，能讓這份熱情轉化為更穩固的親密感。",
+    wealth:"財運呈現明朗向上的趨勢,適合公開透明的投資方式,展現專業判斷力進行布局。把握當下的好機運,積極為財富增長努力。可考慮將部分獲利公開或透明地分享（如與夥伴、家人討論財務規劃），清楚的溝通有助於凝聚共識、加速推進計畫。",
+    changeNote:"離卦象徵光明燦爛的能量,若占得變卦,提醒盛極之時也要留意過於耀眼可能招致的注目與壓力，需保持柔順內斂的智慧。"},
+  "001110":{n:31,name:"咸",title:"澤山咸",
+    judgment:"咸，亨，利貞。取女吉。象徵感應相通，男女相悅，心意相通方能成事。",
+    meaning:"感應相通，心心相印。此卦主感情，情投意合，心靈感應，宜發展人際關係。",
+    advice:"以誠感人，真心付出，感情自然水到渠成。",
+    career:"與同事或合作夥伴之間容易產生良好的默契與共鳴,適合透過真誠的交流建立深厚的工作關係。以心交心的方式溝通,合作會更加順暢。可以透過非正式的交流（如聚餐、閒聊）建立與同事或夥伴的默契，真誠的互動往往比正式會議更能促成合作。",
+    love:"這是發展感情的絕佳卦象,雙方心靈契合、情投意合,適合表白、求婚或進一步深化關係。真誠的情感交流會帶來美好的進展。若心意已經明確，這是適合主動表白或求婚的好時機，真誠地說出感受，往往能得到正面的回應。",
+    wealth:"財務合作上若彼此理念相通、互信度高,適合進一步深化投資合作關係。以誠相待的夥伴關係，往往能帶來意想不到的收穫。建立合作前不妨先進行小規模的試探性合作，觀察彼此默契與誠信，確認合拍後再逐步擴大投資或合夥規模。",
+    changeNote:"咸卦強調心靈感應與真誠相待,若占得變卦,代表這份情感連結即將進入新的階段,提醒持續用真心經營這份難得的緣分。"},
+  "011100":{n:32,name:"恆",title:"雷風恆",
+    judgment:"恆，亨，利貞，无咎，利有攸往。象徵恆久不變之道，持之以恆方能長久亨通。",
+    meaning:"恆久持續，堅持不懈。此卦主恆心，凡事需有恆心毅力，持之以恆方可成功。",
+    advice:"堅定目標，持之以恆，不輕言放棄，成功在望。",
+    career:"事業成功的關鍵在於持續穩定的努力,而非一時的衝勁。建議設定長期目標並堅持執行,不因短期挫折而輕易改變方向，終能累積豐碩成果。可以設定清楚的長期職涯目標並拆解成階段性任務，持續執行、定期檢視進度，避免因短期挫折而輕易轉換方向。",
+    love:"長久穩定的感情需要雙方持續用心經營,不能僅靠激情維繫。建立規律且穩固的相處模式,持之以恆的陪伴是維繫感情最重要的力量。可以建立固定的相處儀式，例如每週的約會時間或睡前聊天習慣，規律的陪伴比偶爾的驚喜更能維繫長久感情。",
+    wealth:"財富累積需要長期穩健的規劃與堅持,避免追逐短期暴利的投機心態。透過持續且規律的儲蓄與投資,才能穩健累積長遠的財富。建議設定固定的儲蓄或投資比例（如每月收入的一定百分比），長期持續執行，避免因短期市場波動而中斷原有計畫。",
+    changeNote:"恆卦強調持之以恆的重要性,若占得變卦,提醒即使方向有所調整,仍要保持恆心毅力，才能讓努力最終轉化為實質的成果。"},
+  "001111":{n:33,name:"遯",title:"天山遯",
+    judgment:"遯，亨，小利貞。象徵小人漸長、君子退避，明哲保身以待時機。",
+    meaning:"退避隱遁，小人勢盛。此時不宜與對手正面衝突，退一步海闊天空，明哲保身。",
+    advice:"適時退讓並非軟弱，而是聰明的策略，韜光養晦。",
+    career:"職場環境可能出現不利於己的勢力或氛圍,此時硬碰硬只會徒增損耗。建議暫時退居二線、避開鋒芒,保留實力，待局勢轉變後再尋求發展機會。面對明顯不利的職場氛圍或勢力，建議先觀察情勢、避免正面衝突，必要時可以考慮暫時轉換跑道或部門。",
+    love:"感情中若遇到難以調和的矛盾或外在壓力,適時的退讓與冷靜並非放棄,而是給彼此空間沉澱。過度堅持對抗，反而可能讓關係更加惡化。面對僵持不下的爭執，先各自冷靜一段時間，不急著在情緒中逼對方表態，反而更容易讓關係回穩。",
+    wealth:"面對不利的市場環境或潛藏風險,適時退場、暫緩投資是明智之舉。保住本金、靜待時機，比硬撐到底承受更大損失更為穩妥。面對明顯走弱的投資或不再有共識的合夥關係，及早規劃退場路徑與時間表，保留實力比死守到底更為明智。",
+    changeNote:"遯卦提醒適時退避的智慧,若占得變卦,代表退守之後將迎來新的轉機,提醒退一步是為了未來更好的進擊做準備。"},
+  "111100":{n:34,name:"大壯",title:"雷天大壯",
+    judgment:"大壯，利貞。象徵陽剛壯盛、聲勢浩大，力量強盛但需謹防過剛而折。",
+    meaning:"聲勢盛大，剛壯有力。實力雄厚，但容易因為過於自信而盲目冒進，需注意節制。",
+    advice:"得理也要饒人，切忌恃才傲物，保持理智與溫和。",
+    career:"目前實力與氣勢正處於高峰,適合積極展現能力爭取重要機會。但要留意過於強勢或自負的態度可能招致他人反感,理直氣和才能行得更遠。展現實力的同時，建議多留意他人的感受與反應，適度謙讓能讓自己的優勢被更多人認可而非引來反感。",
+    love:"感情中可能因為一方氣勢過於強烈而造成相處上的失衡。即使自己佔有理或優勢,也應保持溫和謙讓的態度，避免讓對方感到壓力過大。即使自己有理，也建議放緩語氣、多聽對方說完，避免用強勢的態度讓對方感到被壓迫而想逃避溝通。",
+    wealth:"財運強勁,投資與事業擴張皆有底氣支撐。但需警惕因過度自信而擴張過快、槓桿過高,適度控制風險才能讓壯盛之勢持續長久。擴張腳步加快時建議同步檢視負債比率與現金流量表，避免槓桿倍數過高，一旦風向轉變也能有餘裕應對。",
+    changeNote:"大壯卦象徵剛健壯盛的力量,若占得變卦,提醒盛極之時尤須謹慎節制,避免因衝勁過猛而折損，方能保住既有的優勢。"},
+  "000101":{n:35,name:"晉",title:"火地晉",
+    judgment:"晉，康侯用錫馬蕃庶。象徵光明上升、步步晉升，前途光明且持續順遂。",
+    meaning:"晉升前進，光明在望。此卦大吉，事業有成，步步高升，前途光明，可積極進取。",
+    advice:"乘勝追擊，積極進取，貴人相助，晉升有望。",
+    career:"事業運勢呈現穩步上升的良好態勢,升遷加薪、獲得重要肯定的機會大增。此時應積極展現自己,主動爭取曝光與表現機會,貴人運也十分旺盛。可以主動爭取重要專案的曝光機會，或向主管表達升遷意願，這段時間的積極表現特別容易被看見。",
+    love:"感情關係正朝著正向發展,雙方互動越來越深入且穩定,有望進入新的階段(如同居、訂婚)。保持積極正向的態度，幸福會持續加深。可以順勢主動討論關係的下一步（如同居、見雙方家長），把握這段關係穩定上升的好時機。",
+    wealth:"財運處於穩步成長的階段,收入與資產皆有提升的趨勢。適合趁勢進取，積極尋求更多收入來源或投資機會，把握難得的上升氣勢。可以主動爭取加薪、升遷或新的收入來源，同時逐步增加投資比重，把握上升氣勢但仍建議分批布局、避免單筆重壓。",
+    changeNote:"晉卦象徵步步高升的光明前景,若占得變卦,提醒在晉升過程中仍要謹守本分、踏實前進,才能讓這份好運持續延伸。"},
+  "101000":{n:36,name:"明夷",title:"地火明夷",
+    judgment:"明夷，利艱貞。象徵光明受傷、隱於地下，處於逆境時應內斂自守，保全自身。",
+    meaning:"光明受傷，暫時蟄伏。此時環境不利，宜韜光養晦，保護自身，靜待光明。",
+    advice:"明哲保身，收斂鋒芒，以柔克剛，靜待撥雲見日。",
+    career:"目前處境可能較為艱難,才能或努力一時未能獲得應有的肯定,甚至遭受壓抑或誤解。此時宜低調隱忍、保護自己,不必急於證明或對抗，靜待時機回轉。這段時間建議先做好份內工作、避免正面對抗，同時默默記錄自己的努力與成果，等待更合適的時機再爭取肯定。",
+    love:"感情上可能面臨外界壓力或內心委屈難以表達的情況。此時不宜正面衝突或強硬表態,先收斂情緒、自我調適，等待更恰當的時機溝通。這段時間建議先消化自己的情緒、避免在委屈的狀態下正面衝突，等心情平復後再選擇適當時機好好溝通。",
+    wealth:"財務狀況可能因外在環境不利而受到壓抑,投資收益不如預期。建議此時保守應對、減少曝險,保護現有資產為先，不宜貿然出擊。建議降低曝險部位、增加現金與防禦性資產的比重，面對外在壓力先求自保，不宜此時大動作出擊或攤平虧損。",
+    changeNote:"明夷卦提醒在逆境中需韜光養晦,若占得變卦,代表黑暗即將過去、光明重現的契機正在醞釀，提醒堅持隱忍終將迎來轉機。"},
+  "101011":{n:37,name:"家人",title:"風火家人",
+    judgment:"家人，利女貞。象徵家道之本，各守其位、各盡其責，方能家庭和睦興旺。",
+    meaning:"家道興旺，和睦之象。此卦主家庭與內部團隊，宜注重內部團結與分工，家和萬事興。",
+    advice:"以愛心治家，各司其職，內部和諧，萬事吉祥。",
+    career:"團隊運作宜建立清晰的分工與職責,如同家庭成員各司其職。重視內部的和諧與凝聚力,團隊穩固後才能對外發揮更大的戰鬥力。可以和團隊成員明確討論各自的職責與分工，定期檢視合作默契，內部穩固後對外的表現自然會更加出色。",
+    love:"這是經營家庭與親密關係的吉卦,適合討論共同生活、家庭規劃等議題。彼此尊重各自角色與責任,家庭氛圍將更加溫馨和睦。適合和對方討論家庭分工、未來規劃等實際議題，透過清楚的角色分工，讓彼此的關係更加安穩。",
+    wealth:"家庭財務規劃宜由全家共同參與、明確分工,例如收支管理與儲蓄目標的設定。內部溝通良好，財務狀況自然能穩健有序地發展。可以召開一次家庭財務會議，明確劃分收支管理、儲蓄目標與各自的財務責任，定期檢視進度，家和自然萬事興。",
+    changeNote:"家人卦強調內部和諧的重要性,若占得變卦,代表家庭或團隊內部關係即將有新的調整,提醒持續用愛與責任感維繫凝聚力。"},
+  "110101":{n:38,name:"睽",title:"火澤睽",
+    judgment:"睽，小事吉。象徵上下乖違、意見分歧，雖難共識，但小事仍能逢吉。",
+    meaning:"乖違不合，意見分歧。此時易有矛盾，宜求同存異，小事可為，大事暫緩。",
+    advice:"包容異見，尋求共識，以誠溝通，化解分歧。",
+    career:"團隊或合作夥伴之間可能存在理念或方法上的分歧,大型決策暫時難以達成共識。建議先從小事著手累積互信，求同存異，逐步化解隔閣。可以先從共識度高的小專案開始合作，累積互信基礎，重大決策建議暫緩，待理念更接近後再推進。",
+    love:"感情中雙方可能對某些重大議題持不同看法,容易產生爭執與誤解。建議先處理小事建立信任基礎,重大決定可暫緩，待溝通更充分後再議。可以先從日常小事的共識培養默契，重大的決定（如同居、婚事）建議暫緩，等溝通更充分後再談。",
+    wealth:"財務決策上可能與合夥人或家人意見不一,大筆投資宜暫緩討論。先從小額、共識較高的項目開始合作，逐步建立財務上的互信基礎。涉及金額較大的決定建議暫緩，先透過幾次小額且共識度高的合作累積互信，等分歧縮小後再討論重大財務事項。",
+    changeNote:"睽卦提醒意見分歧時應求同存異,若占得變卦,代表透過溝通協調,分歧正逐漸縮小,提醒持續耐心對話，終能化解隔閣達成共識。"},
+  "001010":{n:39,name:"蹇",title:"水山蹇",
+    judgment:"蹇，利西南，不利東北。象徵前路險阻、行進困難，宜見險而止，尋求貴人協助。",
+    meaning:"前有險阻，寸步難行。前方困難重重，盲目冒進必遭失敗，宜見險而止，尋求貴人。",
+    advice:"建議反求諸己，暫緩行動，多聽取長輩或專業人士的意見。",
+    career:"工作上面臨明顯的瓶頸與阻礙,單靠個人之力恐難突破。此時應放下身段,主動尋求資深前輩、主管或專業人士的指導與協助，借力使力渡過難關。建議主動向資深主管或業界前輩請益，說明目前遇到的具體瓶頸，借助他人的經驗與資源突破困境。",
+    love:"感情發展遇到難以跨越的障礙,如距離、家庭因素或現實考量。盲目強行推進容易適得其反,不妨尋求雙方信任的人從中協調或給予建議。面對現實考量（如距離、家庭反對）不妨找雙方都信任的親友幫忙居中溝通，而非只靠兩人硬碰硬解決。",
+    wealth:"投資或財務規劃遇到棘手的困境,前景不明朗。此時不宜貿然加碼或硬撐,應諮詢專業理財顧問的意見,謹慎評估後再決定下一步行動。建議主動諮詢會計師、理財顧問或有經驗的前輩，借助外部專業意見釐清困境根源，而非獨自摸索、貿然加碼硬撐。",
+    changeNote:"蹇卦象徵險阻難行的困境,若占得變卦,代表透過尋求協助與耐心應對,困境將逐漸找到突破口,提醒勿因受挫而輕言放棄。"},
+  "010100":{n:40,name:"解",title:"雷水解",
+    judgment:"解，利西南，无所往，其來復吉。象徵險難已過、冰消瓦解，宜把握時機行動。",
+    meaning:"解除災難，冰消瓦解。困難即將過去，誤會得到冰釋，宜把握時機採取行動。",
+    advice:"事情剛明朗，宜快速處理未竟事宜，大膽前進。",
+    career:"先前困擾已久的問題終於迎來解決的契機,工作壓力與阻礙正逐漸消散。此時應趁勢加快腳步,處理積壓已久的事務,把握難得的順暢時機。可以趁此時機加快腳步處理積壓已久的專案或人事問題，把握壓力減輕後的順暢期加速推進工作。",
+    love:"感情中的誤會或心結已逐漸獲得化解,關係正朝著輕鬆和緩的方向發展。趁此時機坦誠溝通、處理過去未解決的問題，關係將更加穩固。可以趁這個關係緩和的時機，主動把過去沒說開的心結講清楚，讓兩人的關係更輕鬆自在地往前走。",
+    wealth:"財務上的困境或糾紛正逐步獲得解決,資金壓力有望減輕。建議趁此時機妥善處理積欠或未結清的財務事項，為接下來的發展鋪平道路。可趁此時機優先清償積欠款項或處理未結清的帳務，資金壓力減輕後，再著手規劃下一階段的投資或儲蓄目標。",
+    changeNote:"解卦象徵困境消解的好時機,若占得變卦,提醒應加快腳步處理未竟之事,趁勢而起，避免錯失這個難得的順暢階段。"},
+  "110001":{n:41,name:"損",title:"山澤損",
+    judgment:"損，有孚，元吉，无咎，可貞，利有攸往。象徵損下益上，看似損失卻能換來長遠之益。",
+    meaning:"有所損失，損下益上。此時雖有損失，但損中有益，宜節儉自持，誠信待人。",
+    advice:"以誠信應對損失，節約開支，損己利人，終有回報。",
+    career:"目前可能需要犧牲短期的利益或付出額外努力,才能換取長遠的職業發展或團隊和諧。這種付出並非白費,終將以另一種形式獲得回報。若需要暫時犧牲個人利益（如加班支援團隊），建議清楚讓主管知道你的付出，長遠來看有助於累積信任與評價。",
+    love:"感情中可能需要一方做出某些讓步或犧牲,以維護整體關係的和諧。只要出於真心誠意,這份付出最終會轉化為更深厚的情感連結。若需要做出讓步或犧牲（如配合對方的生活安排），建議先確認這是出於自願而非委屈求全，感情才能長久。",
+    wealth:"短期內可能面臨支出增加或收益減損的情況,但若用於正當且必要的投資(如進修、健康),長遠來看將帶來更大的回報，不必過於焦慮。短期的支出增加建議優先用於進修、健康或長期資產累積等能帶來複利效益的項目，避免用於單純消費性支出。",
+    changeNote:"損卦提醒看似損失卻暗藏長遠之益,若占得變卦,代表付出已逐漸轉化為收穫,提醒堅持誠信節制的原則，終將迎來益卦般的回饋。"},
+  "100011":{n:42,name:"益",title:"風雷益",
+    judgment:"益，利有攸往，利涉大川。象徵損上益下，上下互惠，是增益進取的吉祥之卦。",
+    meaning:"增益豐收，大有所獲。此卦大吉，事業財運均有增益，宜積極行動，把握良機。",
+    advice:"積極進取，廣結善緣，慷慨助人，福報自來。",
+    career:"目前是爭取資源、推動計劃的絕佳時機,付出的努力很有機會獲得加倍的回報。樂於分享、幫助他人也能為自己累積更多的人脈與好感。可以趁此順風期主動爭取更多資源或新專案，同時樂於分享經驗、提攜後進，這種善意會為自己累積更多支持。",
+    love:"感情關係呈現雙方互惠互利、共同成長的良好狀態。彼此的付出能夠相互滋養增益,感情會在這樣的良性循環中越來越深厚。可以多主動分享彼此的資源與支持（例如互相鼓勵對方的夢想），這種互惠的付出會讓感情越來越深厚。",
+    wealth:"財運大幅增益,投資與收入皆有顯著提升的機會。把握當下積極佈局,同時懂得分享與回饋他人，往往能讓福報持續循環累積。可趁此順風期加大投資比重或爭取新的合作機會，同時提撥部分獲利用於回饋或分享，讓好運循環持續累積。",
+    changeNote:"益卦象徵增益豐收的好運勢,若占得變卦,提醒在獲益之時也要懂得適度分享與感恩,才能讓這份好運氣延續得更長久。"},
+  "111110":{n:43,name:"夬",title:"澤天夬",
+    judgment:"夬，揚于王庭，孚號有厲。象徵決斷除惡，需公開果決行事，方能消除隱患。",
+    meaning:"決斷除惡，去除障礙。此時需果斷決策，清除阻礙，公開表達立場，方可成事。",
+    advice:"果斷行事，以正克邪，公開透明，正氣凜然。",
+    career:"工作上可能需要做出重大且果斷的決定,例如淘汰不適合的合作對象或結束無效益的計劃。公開透明地表明立場,反而能贏得他人的尊重與支持。若決定要淘汰不適合的合作方式或結束無效益的專案，建議透過正式管道明確溝通，而非默默拖延不處理。",
+    love:"感情中若存在長期懸而未決的問題(如該分還是該繼續),此時應果斷做出抉擇,公開誠實地表達自己的想法,拖延只會讓彼此更加痛苦。若心裡已經有答案（該分還是該繼續），建議儘快找對方坦白說清楚，拖延不表態只會讓雙方更痛苦。",
+    wealth:"財務上可能需要果斷停損或結束某項不再有利的投資。公開、明確地處理財務問題,而非含糊拖延,才能有效阻止損失持續擴大。對於已明顯無效益的投資或合作，建議設定明確的停損點並確實執行，拖延處理只會讓損失持續擴大、難以收拾。",
+    changeNote:"夬卦強調果斷決絕的行動力,若占得變卦,代表決斷之後局勢即將清朗,提醒拿出勇氣面對問題，才能真正撥開雲霧見青天。"},
+  "011111":{n:44,name:"姤",title:"天風姤",
+    judgment:"姤，女壯，勿用取女。象徵不期而遇，需謹慎應對意外的人事或誘惑。",
+    meaning:"偶然相遇，不期而遇。此卦主意外之遇，宜謹慎應對，防止被人蒙蔽或誘惑。",
+    advice:"保持清醒，謹防誘惑，以正確判斷應對偶發事件。",
+    career:"工作上可能會出現意料之外的機會或人事接觸,例如突然的合作邀約或誘人的條件。此時應保持理性判斷,謹慎評估其真實性與長遠影響，避免被表面利益迷惑。面對突然出現的合作邀約或誘人條件，建議先查證對方背景與過往紀錄，審慎評估後再決定是否投入。",
+    love:"可能會遇到突如其來的曖昧對象或誘惑,需要審慎判斷其真心與動機。若已有穩定關係,更應謹守原則，避免因一時衝動而傷害現有的感情。面對突然出現的曖昧對象，建議先誠實面對自己的心意，若已有穩定關係，更要主動保持適當的界線。",
+    wealth:"可能會接觸到看似誘人但風險未明的投資機會或合作提案。務必保持警覺、深入調查,避免因貪圖一時利益而陷入財務陷阱或詐騙風險。面對突如其來的投資邀約或合作提案，建議先查核對方背景與過往紀錄，切勿因一時心動而略過必要的盡職調查。",
+    changeNote:"姤卦提醒意外相遇需謹慎以對,若占得變卦,代表這個突發狀況的真實面貌即將浮現,提醒持續保持清醒理性，再做最終判斷。"},
+  "000110":{n:45,name:"萃",title:"澤地萃",
+    judgment:"萃，亨，王假有廟。象徵眾人聚集、薈萃一堂，宜凝聚共識共同成事。",
+    meaning:"聚集薈萃，眾志成城。此卦宜合群，集眾力成事，有共同目標，共同行動。",
+    advice:"廣納賢才，凝聚力量，眾人拾柴火焰高。",
+    career:"適合舉辦團隊聚會、招募人才或整合各方資源,凝聚眾人力量共同推動目標。團隊合作的氛圍正濃,此時的集體行動往往能事半功倍。可以主動籌辦團隊聚會或跨部門交流活動，趁大家士氣高昂時凝聚共識，推動需要集體力量完成的目標。",
+    love:"適合與重視的人或家人朋友聚會聯誼,增進感情連結。單身者也適合多參與社交聚會,在人群聚集的場合中更容易遇到合適的對象。單身者可以多參加朋友聚會、興趣社團等場合，增加自然認識合適對象的機會，不需要刻意強求。",
+    wealth:"適合與他人合資或集資進行較大規模的投資計劃,集眾人之力比單獨行動更能分散風險、創造更大效益。把握眾志成城的好時機。集資前建議明訂出資比例、決策方式與退場機制，並選擇理念相近、誠信可靠的夥伴，才能真正發揮眾志成城的效益。",
+    changeNote:"萃卦象徵眾人凝聚的力量,若占得變卦,代表聚合之後即將進入新的發展方向,提醒善用這份集體力量，為下一階段做好規劃。"},
+  "011000":{n:46,name:"升",title:"地風升",
+    judgment:"升，元亨，用見大人，勿恤，南征吉。象徵循序上升、步步高升，宜積極進取。",
+    meaning:"上升進步，逐步提升。此卦主晉升，循序漸進，按部就班，終可達到高位。",
+    advice:"腳踏實地，循序漸進，積累實力，穩步上升。",
+    career:"事業正處於穩步上升的良好趨勢,適合主動尋求拜訪有經驗的長輩或主管請益,按部就班累積資歷與口碑,終將達到更高的職位或成就。可以主動安排與資深主管的請益會議，展現積極學習的態度，按部就班爭取歷練機會，逐步累積口碑與資歷。",
+    love:"感情關係正逐漸朝著穩定深化的方向前進,雙方的信任與默契也在穩步提升。耐心經營、不急躁,這份感情會越來越踏實穩固。可以循序漸進地討論關係中的下一步（例如見家長、規劃未來），不急躁地讓信任與默契穩步累積。",
+    wealth:"財富累積正呈現穩定上升的趨勢,適合採取循序漸進的投資策略,逐步擴大資產規模。穩健踏實的理財方式，最終能達到理想的目標。可採取定期定額或階梯式加碼的方式逐步擴大部位，並保留部分資金因應市場修正，穩紮穩打比急於求成更能走得長遠。",
+    changeNote:"升卦強調循序漸進向上的力量,若占得變卦,提醒在上升過程中仍要保持腳踏實地的態度,才能讓這份成長真正穩固而長久。"},
+  "010110":{n:47,name:"困",title:"澤水困",
+    judgment:"困，亨，貞大人吉，无咎，有言不信。象徵身陷困境，唯有堅守正道方能渡過難關。",
+    meaning:"困境窮途，身陷囹圄。此時運勢低落，處境艱難，宜保持樂觀，靜待困境解除。",
+    advice:"保持節操，堅定信念，困境中磨練意志，終必解脫。",
+    career:"工作上可能面臨資源匱乏、處境艱難的窘境,努力卻未能獲得相應的回報,容易感到挫折無力。此時切勿放棄原則,堅持下去終能等到轉機。資源匱乏時建議優先確保核心任務不受影響，同時主動向主管反映困境、尋求必要的支援，而非獨自硬撐。",
+    love:"感情中可能面臨外在條件或現實壓力造成的困境,讓雙方關係承受不小的考驗。維持初心、彼此扶持,共同度過這段艱難時期,感情會更加堅韌。面對現實壓力（如經濟、家庭因素），建議彼此坦誠說出各自的擔憂，而非各自默默硬撐，互相扶持才能撐過難關。",
+    wealth:"財務狀況可能陷入較為緊縮或困頓的局面,周轉壓力增加。此時應堅守原則,避免病急亂投醫式的高風險操作,耐心等待困境解除的時機。建議優先確保基本生活開銷無虞，暫緩非必要的投資或借貸，並主動尋求信任的親友或專業管道協助度過周轉壓力。",
+    changeNote:"困卦象徵身陷困境的考驗,若占得變卦,代表困境即將迎來轉機,提醒堅守正道、保持信念是渡過此關鍵時期最重要的力量。"},
+  "011010":{n:48,name:"井",title:"水風井",
+    judgment:"井，改邑不改井，无喪无得。象徵井水取之不盡、用之不竭，宜善用既有資源。",
+    meaning:"深井之水，取之不盡。此卦主資源充足，如井水般源源不斷，宜善用資源。",
+    advice:"善用既有資源，穩紮穩打，切勿輕易廢棄根基。",
+    career:"目前擁有的資源、人脈或專業能力如同深井之水般充足,應善加運用既有的基礎,而非急於另闢新徑。穩固根基才能持續供應源源不絕的動能。可以善用既有的專業能力與人脈資源持續產出價值，不需要為了追求新鮮感而輕易放棄已經穩固的根基。",
+    love:"感情基礎穩固深厚,如同深井之水般經得起時間考驗。珍惜並善用這份穩定的情感資源，持續灌溉經營，關係將能長久滋養彼此。可以持續透過日常的陪伴與傾聽維繫這份穩固的感情基礎，不需要額外的驚喜或戲劇性的舉動來證明感情。",
+    wealth:"既有的財務基礎或資產配置相對穩固,適合善加利用現有資源進行穩健規劃,而非貿然放棄根基去追求未知的高風險機會。可以善用既有的資產、人脈或穩定收入來源持續產生現金流，不需要為了追求新機會而輕易放棄長期經營的根基。",
+    changeNote:"井卦象徵資源源源不絕的穩固根基,若占得變卦,提醒即使局勢有所變化,仍應珍惜並善用既有的根基資源，才能持續獲得滋養。"},
+  "101110":{n:49,name:"革",title:"澤火革",
+    judgment:"革，巳日乃孚，元亨利貞。象徵革故鼎新，順應天時人心方能成功變革。",
+    meaning:"革命改革，除舊布新。此時宜大膽改革，破舊立新，時機成熟必有成效。",
+    advice:"順應時勢，大膽革新，改革有成，悔恨自消。",
+    career:"目前是進行重大改革或轉型的適當時機,無論是調整工作方式、轉換職場或推動組織變革,只要時機與準備充分，大膽行動將帶來顯著成效。進行組織變革或轉職前，建議做好完整的計畫與風險評估，分階段推進轉型，而非倉促一次到位。",
+    love:"感情關係可能需要進行根本性的調整或改變,例如重新定義關係模式或共同面對過去的問題。勇於革新舊有的相處方式，能為關係注入新的活力。若關係需要調整（例如重新定義彼此的角色或約定），建議找一個雙方都平靜的時刻好好討論，而非在爭吵中臨時決定。",
+    wealth:"財務策略可能需要進行較大幅度的調整,例如轉換投資方向或重整資產配置。只要時機成熟、規劃完善，這次的改革將帶來財富結構的優化。進行資產配置調整前建議先做好完整的規劃與試算，分階段執行轉換，而非一次全面翻盤，才能降低轉型期間的風險。",
+    changeNote:"革卦象徵破舊立新的變革力量,若占得變卦,代表改革行動已產生實質效果,提醒持續鞏固新局面，避免半途而廢回到舊有模式。"},
+  "011101":{n:50,name:"鼎",title:"火風鼎",
+    judgment:"鼎，元吉，亨。象徵鼎立穩重、烹飪化育，是成就文明事業的象徵。",
+    meaning:"鼎新革故，文明開化。此卦象徵成就與文明，凡事宜正派行事，以德服眾。",
+    advice:"以德立業，廣納賢才，共創文明，功業卓著。",
+    career:"事業正處於穩固建立、逐步成就的階段,如同鼎一般象徵地位與權威的確立。以正直的態度與德行服眾，能為自己樹立卓越的口碑與成就。可以趁此時機建立正式的制度或流程，以身作則展現專業與品格，逐步樹立自己在團隊中的權威與口碑。",
+    love:"感情關係正朝著穩固成熟的方向發展,雙方逐漸建立起如同鼎立般穩定的相處模式。以誠待人、注重彼此的品格與價值觀，關係將更加長久。可以透過共同參與重要決定（如財務規劃、未來目標）來建立更穩固的默契，讓關係更趨成熟穩定。",
+    wealth:"財富與事業根基正在穩固成形,適合進行較為正式、長期的財務規劃,如建立信託或穩健的資產配置。正派踏實的理財態度將帶來豐厚回報。適合此時諮詢專業人士規劃信託、保險或退休金等長期財務工具，建立正式且穩固的架構，為未來奠定長久基礎。",
+    changeNote:"鼎卦象徵穩固成就的局面,若占得變卦,提醒在穩固之中仍須注意調整與創新,避免過於守舊而錯失進一步發展的機會。"},
+  "100100":{n:51,name:"震",title:"震為雷",
+    judgment:"震，亨。震來虩虩，笑言啞啞。象徵震動驚懼，但能於驚恐中保持鎮定終獲吉祥。",
+    meaning:"震動驚懼，警醒反思。此卦示意有突發事件，需保持冷靜，在震驚中反省自己。",
+    advice:"保持冷靜，在驚慌中沉著應對，方可化險為夷。",
+    career:"工作上可能會遇到突發的變動或令人措手不及的消息,例如組織異動或意外的壓力測試。保持冷靜應對、藉機反思檢討自身，往往能化危機為轉機。遇到突發的組織異動或壓力測試時，建議先穩住情緒、盤點現況，再從中找出可以改善或調整的方向。",
+    love:"感情中可能出現令人意外或措手不及的事件,造成短暫的情緒波動。冷靜面對、不過度反應，並從中重新審視彼此的關係,有助於度過這個震動期。遇到突發狀況（如意外的衝突或消息）時，建議先穩住情緒、避免立即做出重大決定，等雙方都冷靜後再討論。",
+    wealth:"財務上可能遭遇突發的市場波動或意外支出,造成短期的驚慌情緒。建議保持理性、不要驚慌拋售或衝動決策，沉著應對才能減少損失。建議平時就預留緊急預備金因應突發支出，面對市場劇烈波動時避免恐慌性拋售，冷靜檢視基本面後再做決定。",
+    changeNote:"震卦象徵驚動之後的省思,若占得變卦,代表震驚過後局勢逐漸恢復平靜,提醒從這次的衝擊中學習成長，為未來做好更充分的準備。"},
+  "001001":{n:52,name:"艮",title:"艮為山",
+    judgment:"艮其背，不獲其身。行其庭，不見其人。象徵止於當止，靜定自守，不妄動。",
+    meaning:"靜止如山，安定思慮。此卦主靜，宜停止行動，冷靜思考，不可輕舉妄動。",
+    advice:"靜心思考，放下執念，以靜制動。",
+    career:"目前不宜採取重大行動,建議暫停下來冷靜思考目前的方向是否正確。適度的停頓並非停滯不前,而是為了讓接下來的決策更加周全穩妥。可以趁這段停頓期重新檢視職涯方向或專案策略是否需要調整，想清楚了再行動，會比倉促決定更穩妥。",
+    love:"感情中若雙方都處於迷惘或猶豫不決的狀態,不妨暫停下來各自冷靜思考,而非急於做出決定。靜心沉澱後,方向會變得更加清晰。若雙方都還在猶豫，不妨各自給自己一些安靜思考的時間，而非急著在對話中逼對方表態。",
+    wealth:"財務決策上宜保持靜觀其變的態度,暫緩大筆投資或資金調動。沉靜下來審慎評估，比倉促行動更能避免不必要的財務風險。可以趁此時機重新檢視整體資產配置是否合理，暫緩任何重大資金調動，等思路清晰後再決定下一步行動方向。",
+    changeNote:"艮卦強調知止而後安的智慧,若占得變卦,代表靜定之後行動的時機已逐漸成熟,提醒在沉澱思考後，可以更穩健地邁出下一步。"},
+  "001011":{n:53,name:"漸",title:"風山漸",
+    judgment:"漸，女歸吉，利貞。象徵循序漸進、如鴻雁南飛，按部就班方能成就長遠之事。",
+    meaning:"循序漸進，鳳凰于飛。凡事急不得，像草木生長一樣，按部就班地前進必能獲得長遠的成功。",
+    advice:"保持耐心，按進度慢慢來，欲速則不達。",
+    career:"事業發展宜採取穩健漸進的步調,按部就班累積經驗與成果,而非追求一步登天的捷徑。耐心耕耘,終將迎來扎實而長久的職業成就。可以設定階段性的職涯目標，按部就班累積實績與人脈，不需要急於一次到位追求升遷或大幅加薪。",
+    love:"感情發展需要時間慢慢培養與深化,如同鴻雁南飛般循序漸進,不宜操之過急要求立即進入下一階段。穩步前進的關係往往更加牢固持久。可以循序漸進地增加相處時間與深度話題，不需要急著在短時間內確立關係或做出重大承諾。",
+    wealth:"財富累積適合採用長期且穩健的投資策略,如定期定額或長期持有的方式。切勿追求一夜致富的投機心態,耐心等待複利效應的累積。適合採取定期定額、分批進場的方式逐步累積部位，設定長期目標（如三到五年），避免因短期漲跌而頻繁進出。",
+    changeNote:"漸卦強調循序漸進的智慧,若占得變卦,提醒持續保持耐心,即使過程緩慢，按部就班的努力終將累積出令人滿意的成果。"},
+  "110100":{n:54,name:"歸妹",title:"雷澤歸妹",
+    judgment:"歸妹，征凶，无攸利。象徵名分不正、行事衝動，容易因錯位的結合招致困擾。",
+    meaning:"浮躁盲目，不合時宜。此卦象徵錯位或不正常的結合，行事容易衝動，後續可能帶來困擾。",
+    advice:"控制情緒與慾望，切勿盲目做決定，看清局勢再動。",
+    career:"可能因一時衝動或不適當的決定(如倉促接受不合適的職位或合作)而陷入後續的困擾。建議冷靜下來重新評估,避免因衝動而做出不利的選擇。面對倉促的職位邀約或合作提案，建議先花時間了解實際內容與條件，避免因一時衝動而做出不利的選擇。",
+    love:"感情中可能涉及身分或時機不對等的關係,例如倉促進入一段未經充分了解的關係。建議放慢腳步,看清彼此真實的狀況再做進一步決定。建議先花時間確認彼此對這段關係的期待是否一致，避免因一時衝動或外在壓力而倉促決定。",
+    wealth:"財務上可能因衝動或一時興起而做出不夠審慎的決定,如倉促的投資或借貸。務必控制衝動的消費或投資慾望,理性評估後再行動。任何金額較大的決定建議至少保留一天以上的冷靜期再簽字或下單，避免因一時衝動而做出事後後悔的財務承諾。",
+    changeNote:"歸妹卦提醒衝動行事容易招致困擾,若占得變卦,代表透過冷靜反思,原本不利的局面有機會獲得調整與改善,提醒及時收斂衝動的心態。"},
+  "101100":{n:55,name:"豐",title:"雷火豐",
+    judgment:"豐，亨，王假之，勿憂，宜日中。象徵豐盛盈滿、如日中天，需謹防盛極而衰。",
+    meaning:"盛大豐滿，如日中天。當前運勢非常興旺，收穫滿滿，但要提防盛極必衰的自然規律。",
+    advice:"居安思危，在鼎盛時期做好未來的規劃與儲蓄。",
+    career:"事業成就達到一個豐盛的高峰期,各方面的努力都獲得了相應的回報。然而盛極必衰是自然法則,此時更應未雨綢繆，為將來的波動提前佈局。達到成就高峰時，建議提前規劃下一階段的方向與風險應對，避免景氣或局勢轉變時措手不及。",
+    love:"感情生活處於非常美滿幸福的階段,雙方關係達到前所未有的高峰。珍惜這份豐盛的同時,也要留意維繫感情的長久之道，避免因滿足而鬆懈經營。可以在美滿之餘，主動安排固定的深度溝通時間，避免因幸福感而疏於維繫，讓關係持續保鮮。",
+    wealth:"財運達到豐盛的頂點,收益與資產均處於高位。建議在此時做好分散風險與儲備規劃,避免盛極而衰時措手不及，造成財富大幅縮水。建議趁高點適度獲利了結、分散配置到較穩健的標的，並提高現金與防禦性資產比重，為景氣循環的轉折預作準備。",
+    changeNote:"豐卦象徵盛極一時的豐盈局面,若占得變卦,提醒務必提前為由盛轉衰的可能性做好準備，方能在變化來臨時從容應對。"},
+  "001101":{n:56,name:"旅",title:"火山旅",
+    judgment:"旅，小亨，旅貞吉。象徵客居在外、行旅不定，宜謹言慎行、與人為善。",
+    meaning:"客居在外，顛沛流離。不安定之象，凡事多有變動，宜低調行事，保持彈性。",
+    advice:"外出或變動時多加小心，與人為善，切勿與當地人發生衝突。",
+    career:"工作上可能面臨出差、外派或職務變動頻繁的情況,缺乏穩定的根基感。建議保持低調謹慎的態度,廣結善緣，在不確定的環境中累積資源與人脈。頻繁出差或職務變動期間，建議主動維繫既有的人脈與資源，保持低調謹慎，逐步在新環境中站穩腳步。",
+    love:"感情關係可能因異地、變動的生活狀態而面臨不穩定的挑戰。此時更需要保持耐心與彈性,透過良好的溝通維繫情感連結,避免因聚少離多而生變。異地或變動期間建議固定安排視訊或通話時間，維持穩定的溝通頻率，避免因聚少離多而心生疏離。",
+    wealth:"財務狀況可能因環境變動而起伏不定,例如收入來源的不穩定性增加。建議保留充足的應急資金，並謹慎處理異地或跨境的財務事務。建議保留至少半年以上生活費的緊急預備金，異地或跨境財務往來務必留存完整單據，避免因資訊落差而產生糾紛。",
+    changeNote:"旅卦象徵漂泊不定的處境,若占得變卦,代表這段不穩定的旅程即將進入新的階段,提醒持續保持謹慎與善意，方能在變動中尋得安穩。"},
+  "011011":{n:57,name:"巽",title:"巽為風",
+    judgment:"巽，小亨，利有攸往，利見大人。象徵風行無阻、柔順滲透，宜謙遜行事以求亨通。",
+    meaning:"柔順謙遜，隨風而行。此卦主柔順，宜謙遜待人，靈活應變，柔中帶剛。",
+    advice:"以柔克剛，謙遜有禮，靈活應對，自然通達。",
+    career:"職場上以柔軟靈活的姿態應對各種狀況,往往比強硬對抗更能達成目標。謙遜有禮地與他人溝通協調,能讓計劃如風一般無形中順利推進。可以用循序漸進、柔性溝通的方式推動計畫，而非強硬要求他人配合，耐心往往比強勢更能達成目標。",
+    love:"感情中宜採取柔軟體貼的相處方式,順應對方的需求與節奏,而非強硬要求對方配合。柔中帶剛的態度，反而更能讓關係維持和諧穩定。可以用溫和、循序漸進的方式表達自己的需求，而非強硬要求對方立即配合，柔性的溝通往往更容易被接受。",
+    wealth:"財務操作上宜採取靈活漸進的策略,如同風行般滲透各個環節，而非單一強硬的手段。耐心調整布局，往往能在不知不覺中達成理想成果。可採取逐步滲透式的布局策略（如分批進場、多元配置），而非單一重壓某項標的，耐心與彈性往往比強勢操作更有效。",
+    changeNote:"巽卦強調柔順滲透的力量,若占得變卦,提醒持續以謙和靈活的態度應對變化,看似柔軟的力量往往能帶來意想不到的成效。"},
+  "110110":{n:58,name:"兌",title:"兌為澤",
+    judgment:"兌，亨。象徵喜悅和悅、澤潤萬物，以誠相待則人際關係和諧暢通。",
+    meaning:"喜悅和悅，歡樂之象。此卦主喜樂，人際關係和諧，宜以誠待人，廣結善緣。",
+    advice:"以誠相待，喜悅之情感染他人，和諧相處，萬事亨通。",
+    career:"工作氛圍輕鬆愉快,與同事或客戶的互動充滿良好的化學反應。以真誠和悅的態度待人,能有效提升合作意願與團隊士氣,事情進展也更加順利。可以主動營造輕鬆愉快的合作氛圍，例如非正式的交流或聚餐，真誠和悅的態度能讓合作更加順利。",
+    love:"感情關係充滿甜蜜與歡樂的氛圍,彼此相處輕鬆自在、笑聲不斷。這是適合表達愛意、增進親密感的良好時機,真誠的喜悅最能打動人心。可以多安排輕鬆愉快的約會或活動，透過真誠的笑容與言語表達愛意，這樣的正向氛圍最容易增進親密感。",
+    wealth:"財運呈現愉快順遂的氣象,適合進行帶有社交性質的商業合作或投資洽談。以誠信和善的態度待人,容易在輕鬆的氛圍中促成有利的財務合作。適合利用聚餐、社交場合自然帶出合作話題，以誠信友善的態度建立信任，往往能在輕鬆氛圍中促成意想不到的機會。",
+    changeNote:"兌卦象徵喜悅與和諧的能量,若占得變卦,提醒在享受愉悅氛圍之時,仍要保持理性判斷，避免因一時的歡愉而忽略潛在的問題。"},
+  "010011":{n:59,name:"渙",title:"風水渙",
+    judgment:"渙，亨。王假有廟，利涉大川。象徵人心渙散離析，需以誠信凝聚共識方能化解。",
+    meaning:"渙散離析，需凝聚人心。此時人心渙散，需積極聚合，以誠信凝聚力量。",
+    advice:"以誠信凝聚眾心，化渙散為凝聚，共同前進。",
+    career:"團隊或組織內部可能出現人心渙散、各自為政的情況,凝聚力明顯不足。此時領導者應以真誠的態度溝通,重新建立共同目標，化解離散的局面。建議召開團隊會議重新溝通共同目標與分工，領導者主動展現誠意，有助於凝聚渙散的向心力。",
+    love:"感情關係可能出現疏離或漸行漸遠的徵兆,雙方的連結感正在減弱。建議及早正視這個問題,透過真誠的溝通重新凝聚彼此的情感與共識。建議儘早找時間坦誠聊聊彼此的感受與現況，重新確認雙方對這段關係的共同目標，避免持續放任疏離感擴大。",
+    wealth:"財務或合夥關係可能面臨資源分散、缺乏統一規劃的問題。建議重新整合資源、明確共同目標,以誠信為基礎重建合作各方的信任與凝聚力。建議重新盤點分散各處的資產與帳戶，整合成清楚一致的規劃，並與合作夥伴重新確認共同目標與分工，避免資源持續耗散。",
+    changeNote:"渙卦提醒人心渙散需及時凝聚,若占得變卦,代表透過積極的溝通與整合,離散的局面正逐漸獲得改善,提醒持續用心經營彼此的連結。"},
+  "110010":{n:60,name:"節",title:"水澤節",
+    judgment:"節，亨，苦節不可貞。象徵節制有度、適可而止，過度節制反而不利。",
+    meaning:"節制有度，適可而止。此卦主節制，凡事需有節度，不可過分，恰到好處最吉。",
+    advice:"節制自律，恰到好處，過猶不及，適度才是中道。",
+    career:"工作上應建立適度的規範與節制,例如合理分配時間與精力,避免過度操勞或鬆懈。掌握恰當的工作節奏,才能維持長期穩定的高效表現。可以建立明確的時間管理原則，例如設定每日工作量上限，避免過度操勞或鬆懈，維持長期穩定的產出。",
+    love:"感情中應保持適度的分享與保留空間的平衡,過度依賴或過於疏離都不利於關係發展。找到彼此舒適的相處節奏，是維繫長久感情的關鍵。可以與對方討論彼此需要的獨處時間與陪伴頻率，找到雙方都能接受的相處節奏，而非單方面配合另一方的步調。",
+    wealth:"財務管理上應建立明確的節制原則,例如設定合理的消費與投資上限。過度節儉或過度揮霍都非長久之道，掌握中道的理財態度最為理想。可以設定具體的預算上限與儲蓄比例（如量入為出、量力而為），定期檢視執行狀況，掌握中庸而非極端的理財節奏。",
+    changeNote:"節卦強調適度節制的重要性,若占得變卦,提醒在調整節制標準時仍需把握中道,過於極端的限制反而可能帶來反效果。"},
+  "110011":{n:61,name:"中孚",title:"風澤中孚",
+    judgment:"中孚，豚魚吉，利涉大川。象徵內心誠信、信任貫通內外，可感化萬物成就大事。",
+    meaning:"誠信待人，心懷誠意。此卦主誠信，以誠待人必有回報，真誠是最好的武器。",
+    advice:"以誠信為本，真心待人，誠意可以感動天地。",
+    career:"以真誠踏實的態度對待工作與夥伴,能夠贏得他人深厚的信任與支持。誠信是此時最有力的武器,即使面對艱難的挑戰，也能憑藉真心化解疑慮。可以主動公開透明地分享工作進度與想法，這份真誠會讓團隊與主管更願意在關鍵時刻信任並支持你。",
+    love:"感情中彼此懷有深厚的信任與真誠,這份誠摯的情感能跨越許多外在的困難與考驗。持續以真心相待,將會建立起堅不可摧的情感連結。可以坦誠分享自己內心真實的想法與擔憂，這份真心換真心的交流，會讓彼此的信任基礎更加穩固。",
+    wealth:"財務合作上若秉持誠信原則,即使面對較大的風險(如重大投資)，也能因彼此的信任基礎而順利推進。真誠透明的態度，是長久財務合作的根基。面對重大財務合作，建議仍以書面契約明確權責，誠信是基礎但完整的文件紀錄更能保障雙方，避免日後認知落差。",
+    changeNote:"中孚卦象徵內心誠信的強大力量,若占得變卦,提醒持續秉持真誠的態度,即使局勢有所變化，誠信仍是化解一切困難的根本力量。"},
+  "001100":{n:62,name:"小過",title:"雷山小過",
+    judgment:"小過，亨，利貞，可小事，不可大事。象徵小有過度，宜謹守本分，謙遜行事。",
+    meaning:"小有過失，宜小不宜大。此時宜謹慎行事，小事可做，大事暫緩，謙遜謹慎。",
+    advice:"量力而行，謹慎謹慎，小步行事，方可吉祥。",
+    career:"目前條件僅適合處理日常細項或小規模的任務,大型計劃或重大決策宜暫緩進行。謹守本分、謙遜行事,在小事上力求盡善盡美才是穩妥之道。可以先從日常細項任務做起，累積口碑與信任，重大決策或專案建議暫緩，等時機更成熟再爭取。",
+    love:"感情上不宜在此時做出重大的承諾或決定,可以先從日常的小細節與小驚喜開始累積感情,謹慎而漸進的方式更能讓關係穩健發展。可以先從一起完成小事（如一起做飯、規劃周末）累積信任感，重大承諾（如結婚）建議再多給彼此一些時間。",
+    wealth:"財務上不適合進行大筆投資或重大資金調動,建議專注於日常小額理財與支出管理。謹慎謙遜的態度,能避免在此時因過度冒進而招致損失。可以先從小額投資或日常理財練習累積經驗與信心，重大資金調動建議暫緩，待局勢更明朗、自身能力更成熟後再考慮。",
+    changeNote:"小過卦提醒此時宜謹守小節,若占得變卦,代表謹慎累積之後局勢將出現新的可能性,提醒持續保持量力而行的謹慎態度。"},
+  "101010":{n:63,name:"既濟",title:"水火既濟",
+    judgment:"既濟，亨小，利貞，初吉終亂。象徵大功告成，但需謹防樂極生憂、功成而衰。",
+    meaning:"大功告成，已經完成。此卦示意事情已成，但成功後需謹慎，防止功敗垂成。",
+    advice:"成功之後需更加謹慎，居安思危，守成不易。",
+    career:"目前的計劃或專案已大致完成且取得成功,值得欣慰與肯定。然而切記成功後仍要保持警覺,持續關注後續細節，避免因鬆懈而功虧一簣。專案完成後建議安排收尾檢討會議，確認後續維護與細節，避免因鬆懈而讓先前的努力功虧一簣。",
+    love:"感情關係已達到穩定且圓滿的階段,雙方目標一致、相處融洽。此時更要用心維繫這份成果,避免因安於現狀而忽略持續經營的重要性。可以定期回顧兩人關係中還能持續經營的部分（例如重溫初衷、規劃共同未來），避免因穩定而停止用心。",
+    wealth:"財務目標已基本達成,資產配置與收益狀況令人滿意。建議此時做好風險控管與資產保護的規劃,避免因過度樂觀而讓既有成果付諸流水。建議定期檢視保單、投資組合是否需要再平衡，並提前規劃稅務與傳承事宜，成功之後的守成往往比創業更需要用心。",
+    changeNote:"既濟卦象徵大功告成的圓滿之象,若占得變卦,正提醒「物極必反」的道理，需特別留意成功之後可能出現的反轉，務必持續謹慎守成。"},
+  "010101":{n:64,name:"未濟",title:"火水未濟",
+    judgment:"未濟，亨。小狐汔濟，濡其尾，无攸利。象徵事未竟全功，仍需謹慎持續努力。",
+    meaning:"尚未完成，繼續努力。此卦示意事情尚未成功，需繼續努力，前途充滿希望。",
+    advice:"謹慎前進，持續努力，功未成時更需小心翼翼。",
+    career:"目前的計劃或目標尚未完全達成,過程中可能還會遇到一些波折與挑戰。此時切忌因接近完成而鬆懈大意,持續謹慎努力，終將迎來圓滿的結果。建議持續按原訂計畫推進，不需要因為接近完成而臨時改變做法，穩健收尾比急於求成更能確保最終成果。",
+    love:"感情關係正處於發展但尚未完全穩定的階段,雙方仍在努力磨合與建立默契。保持耐心與用心經營,不要因一時的不確定而輕易放棄這段關係。可以肯定目前磨合的每一步進展，保持耐心持續溝通，不需要因為還沒完全穩定就懷疑這段關係的價值。",
+    wealth:"財務目標尚未完全實現,可能還需要一段時間的努力與堅持才能看到成果。切勿在接近成功時因急躁而冒險，穩健持續地推進才能真正達標。建議保持原有的節奏繼續推進，不需要因為接近目標而臨時改變策略或加碼冒險，穩健地走完最後一段路才是關鍵。",
+    changeNote:"未濟卦象徵尚未完成的最後階段,若占得變卦,提醒終點已經不遠,但越是接近完成越需謹慎小心，堅持到底才能真正畫上圓滿的句點。"}
+};
+
+// ══════════════════════════════════════════════════════════
+// ── 進階模式：六爻納甲分析（六親／六獸／世應／干支）──
+// 與上方「義理易」（卦辭卦象）是同一次搖卦結果的另一層解讀，
+// 兩者疊加參考，不需要另外再搖一次卦。
+// ══════════════════════════════════════════════════════════
+
+// 八宮所屬：每個六位卦碼對應「宮」與「第幾世」(0=本宮,1~5=一世~五世,6=游魂,7=歸魂)
+const GUA_PALACE = (function(){
+  const T={'乾':'111','坤':'000','震':'100','坎':'010','艮':'001','巽':'011','離':'101','兌':'110'};
+  // 每個宮：[本宮, 一世, 二世, 三世, 四世, 五世, 游魂, 歸魂] 各自的 [下卦,上卦]
+  const palaces = {
+    '乾':[['乾','乾'],['巽','乾'],['艮','乾'],['坤','乾'],['坤','巽'],['坤','艮'],['坤','離'],['乾','離']],
+    '坎':[['坎','坎'],['兌','坎'],['震','坎'],['離','坎'],['離','兌'],['離','震'],['離','坤'],['坎','坤']],
+    '艮':[['艮','艮'],['離','艮'],['乾','艮'],['兌','艮'],['兌','離'],['兌','乾'],['兌','巽'],['艮','巽']],
+    '震':[['震','震'],['坤','震'],['坎','震'],['巽','震'],['巽','坤'],['巽','坎'],['巽','兌'],['震','兌']],
+    '巽':[['巽','巽'],['乾','巽'],['離','巽'],['震','巽'],['震','乾'],['震','離'],['震','艮'],['巽','艮']],
+    '離':[['離','離'],['艮','離'],['巽','離'],['坎','離'],['坎','艮'],['坎','巽'],['坎','乾'],['離','乾']],
+    '坤':[['坤','坤'],['震','坤'],['兌','坤'],['乾','坤'],['乾','震'],['乾','兌'],['乾','坎'],['坤','坎']],
+    '兌':[['兌','兌'],['坎','兌'],['坤','兌'],['艮','兌'],['艮','坎'],['艮','坤'],['艮','震'],['兌','震']]
+  };
+  const map={};
+  Object.keys(palaces).forEach(pName=>{
+    palaces[pName].forEach((pair,gen)=>{
+      const key = T[pair[0]] + T[pair[1]];
+      map[key] = {palace:pName, gen:gen};
+    });
+  });
+  return map;
+})();
+const PALACE_ELEMENT = {'乾':'金','兌':'金','離':'火','震':'木','巽':'木','坎':'水','艮':'土','坤':'土'};
+const WORLD_INDEX_BY_GEN = [5,0,1,2,3,4,3,2]; // 世爻所在位置(0=初爻...5=上爻)，應爻固定與世爻相隔三位
+
+// 納甲：八卦內卦（初～三爻）／外卦（四～上爻）所配天干地支
+const NAJIA = {
+  '111':{stem:{inner:'甲',outer:'壬'}, branch:{inner:['子','寅','辰'], outer:['午','申','戌']}}, // 乾
+  '000':{stem:{inner:'乙',outer:'癸'}, branch:{inner:['未','巳','卯'], outer:['丑','亥','酉']}}, // 坤
+  '100':{stem:{inner:'庚',outer:'庚'}, branch:{inner:['子','寅','辰'], outer:['午','申','戌']}}, // 震
+  '010':{stem:{inner:'戊',outer:'戊'}, branch:{inner:['寅','辰','午'], outer:['申','戌','子']}}, // 坎
+  '001':{stem:{inner:'丙',outer:'丙'}, branch:{inner:['辰','午','申'], outer:['戌','子','寅']}}, // 艮
+  '011':{stem:{inner:'辛',outer:'辛'}, branch:{inner:['丑','亥','酉'], outer:['未','巳','卯']}}, // 巽
+  '101':{stem:{inner:'己',outer:'己'}, branch:{inner:['卯','丑','亥'], outer:['酉','未','巳']}}, // 離
+  '110':{stem:{inner:'丁',outer:'丁'}, branch:{inner:['巳','卯','丑'], outer:['亥','酉','未']}}  // 兌
+};
+const BRANCH_ELEMENT = {'子':'水','丑':'土','寅':'木','卯':'木','辰':'土','巳':'火','午':'火','未':'土','申':'金','酉':'金','戌':'土','亥':'水'};
+const LIUQIN_DESC = {
+  '父母':'代表文書、長輩、辛勞、保護或壓力，也可指房子、車子等不動產與長輩貴人。',
+  '兄弟':'代表競爭者、朋友同輩、破財或阻礙，提醒需留意分心、分財之事。',
+  '子孫':'代表福氣、化解、晚輩子女，也主喜悅、消災解厄，多半是吉利、寬心的象徵。',
+  '官鬼':'代表工作職位、官司壓力、疾病或約束，也可指男友、上司，是責任與挑戰的象徵。',
+  '妻財':'代表財富、物質、女友妻子，也主收穫與享用，是求財、感情裡的實質對象。'
+};
+const SIX_BEASTS = ['青龍','朱雀','勾陳','螣蛇','白虎','玄武'];
+const SIX_BEASTS_DESC = {
+  '青龍':'喜慶吉祥、正面順利之象。','朱雀':'口舌是非、消息文書之象。',
+  '勾陳':'牽絆拖延、田土房產之象。','螣蛇':'虛驚多變、糾纏纏繞之象。',
+  '白虎':'剛猛急躁、傷災血光之象。','玄武':'暗昧不明、盜竊曖昧之象。'
+};
+const GAN_ARR=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const ZHI_ARR=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const GAN_TO_BEAST_START=[0,0,1,1,2,3,4,4,5,5]; // 甲乙起青龍/丙丁起朱雀/戊起勾陳/己起螣蛇/庚辛起白虎/壬癸起玄武
+
+// 用日期算「日干支」（以西元1900/1/31＝甲辰日為基準推算）
+// 空亡對照表：以「甲子旬、甲戌旬、甲申旬、甲午旬、甲辰旬、甲寅旬」六旬各自對應的兩個「落空」地支
+const XUN_KONGWANG = [
+  ['戌','亥'], // 甲子旬（甲子～癸酉）
+  ['申','酉'], // 甲戌旬（甲戌～癸未）
+  ['午','未'], // 甲申旬（甲申～癸巳）
+  ['辰','巳'], // 甲午旬（甲午～癸卯）
+  ['寅','卯'], // 甲辰旬（甲辰～癸丑）
+  ['子','丑']  // 甲寅旬（甲寅～癸亥）
+];
+function getDayGanZhi(dateObj){
+  const epoch = Date.UTC(1900,0,31); // 1900/1/31 為甲辰日，作為推算基準
+  const cur = Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  const diffDays = Math.round((cur-epoch)/86400000);
+  const ganIdx = ((diffDays%10)+10)%10;
+  const zhiIdx = ((diffDays+4)%12+12)%12;
+  const jiazi60 = ((diffDays+40)%60+60)%60; // 甲辰在六十干支表中排第41（索引40）
+  const xunIdx = Math.floor(jiazi60/10);
+  const kongwang = XUN_KONGWANG[xunIdx];
+  return {ganIdx, zhiIdx, text: GAN_ARR[ganIdx]+ZHI_ARR[zhiIdx], kongwang};
+}
+
+// ── 月建（當月的地支）：用「節氣」而非農曆初一來判斷月份切換，這裡採用最多人使用的公開節氣演算法 ──
+const S_TERM_INFO = [0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375494,397447,419210,440795,462224,483532,504758];
+function getSolarTermDate(y, n){ // n: 0=小寒...23=冬至，回傳{y,m,d}
+  const ms = 31556925974.7*(y-1900) + S_TERM_INFO[n]*60000;
+  const base = Date.UTC(1900,0,6,2,5); // 1900年小寒基準點
+  const dt = new Date(ms+base);
+  return {y:dt.getUTCFullYear(), m:dt.getUTCMonth()+1, d:dt.getUTCDate()};
+}
+// 12個「節」（不是「氣」）決定月建切換的時間點
+const JIE_TERMS = [
+  {idx:2, branch:'寅'},{idx:4, branch:'卯'},{idx:6, branch:'辰'},{idx:8, branch:'巳'},
+  {idx:10,branch:'午'},{idx:12,branch:'未'},{idx:14,branch:'申'},{idx:16,branch:'酉'},
+  {idx:18,branch:'戌'},{idx:20,branch:'亥'},{idx:22,branch:'子'},{idx:0, branch:'丑'}
+];
+function getMonthBranch(dateObj){
+  const y = dateObj.getFullYear(), m = dateObj.getMonth()+1, d = dateObj.getDate();
+  const targetTS = Date.UTC(y,m-1,d);
+  let candidates = [];
+  [y-1,y,y+1].forEach(yy=>{
+    JIE_TERMS.forEach(jt=>{
+      const td = getSolarTermDate(yy, jt.idx);
+      candidates.push({ts:Date.UTC(td.y,td.m-1,td.d), branch:jt.branch});
+    });
+  });
+  candidates.sort((a,b)=>a.ts-b.ts);
+  let result = candidates[0].branch;
+  for(const c of candidates){ if(c.ts<=targetTS) result=c.branch; else break; }
+  return result;
+}
+
+function getLiuQin(branchEl, palaceEl){
+  if(branchEl===palaceEl) return '兄弟';
+  const sheng={'木':'火','火':'土','土':'金','金':'水','水':'木'};
+  if(sheng[branchEl]===palaceEl) return '父母';   // branch 生 palace → 生我者為父母
+  if(sheng[palaceEl]===branchEl) return '子孫';   // palace 生 branch → 我生者為子孫
+  const ke={'木':'土','土':'水','水':'火','火':'金','金':'木'};
+  if(ke[branchEl]===palaceEl) return '官鬼';       // branch 克 palace → 克我者為官鬼
+  if(ke[palaceEl]===branchEl) return '妻財';       // palace 克 branch → 我克者為妻財
+  return '';
+}
+
+// 取得單一爻的納甲資料（branch, element, liuqin），用來源卦碼(key)判斷該爻屬於內卦或外卦
+function getLineNajia(key, idx, palaceEl){
+  const lower=key.slice(0,3), upper=key.slice(3,6);
+  const isInner = idx<3;
+  const trig = isInner ? lower : upper;
+  const pos = isInner ? idx : idx-3;
+  const data = NAJIA[trig];
+  const branch = data.branch[isInner?'inner':'outer'][pos];
+  const stem = data.stem[isInner?'inner':'outer'];
+  const el = BRANCH_ELEMENT[branch];
+  return {ganzhi:stem+branch, branch, element:el, liuqin:getLiuQin(el, palaceEl)};
+}
+
+// 主函式：組出完整的六爻納甲分析（本卦六親／六獸／世應 + 動爻的化爻六親）
+function buildNajiaAnalysis(yaosData, castDate){
+  const mainKey = getKey(yaosData, false);
+  const info = GUA_PALACE[mainKey];
+  if(!info) return null;
+  const palaceEl = PALACE_ELEMENT[info.palace];
+  const worldIdx = WORLD_INDEX_BY_GEN[info.gen];
+  const responseIdx = (worldIdx+3)%6;
+  const effectiveDate = castDate || new Date();
+  const dayGZ = getDayGanZhi(effectiveDate);
+  const monthBranch = getMonthBranch(effectiveDate);
+  const monthEl = BRANCH_ELEMENT[monthBranch];
+  const beastStart = GAN_TO_BEAST_START[dayGZ.ganIdx];
+
+  const hasChange = yaosData.some(y=>y.changing);
+  const changedKey = hasChange ? getKey(yaosData, true) : null;
+
+  const lines = yaosData.map((y,i)=>{
+    const najia = getLineNajia(mainKey, i, palaceEl);
+    const beast = SIX_BEASTS[(beastStart+i)%6];
+    const isEmpty = dayGZ.kongwang.includes(najia.branch);
+    let changeTo=null;
+    if(y.changing && changedKey){
+      const chNajia = getLineNajia(changedKey, i, palaceEl);
+      changeTo = chNajia;
+    }
+    return {
+      idx:i, pos:NUM_NAMES[i], isWorld:i===worldIdx, isResponse:i===responseIdx,
+      isYang:y.isYang, changing:y.changing, beast, ...najia, changeTo, isEmpty
+    };
+  });
+
+  return {palace:info.palace, gen:info.gen, palaceEl, dayGZ, monthBranch, monthEl, lines};
+}
+
+const GEN_NAME = ['本宮卦','一世卦','二世卦','三世卦','四世卦','五世卦','游魂卦','歸魂卦'];
+const TRIGRAM_CODE = {'乾':'111','坤':'000','震':'100','坎':'010','艮':'001','巽':'011','離':'101','兌':'110'};
+
+// ── 伏神：本宮首卦（同宮的純卦）六爻，用來在本卦六親不全時「借」出缺少的那個六親 ──
+function getPurePalaceLines(palaceName, palaceEl){
+  const code = TRIGRAM_CODE[palaceName];
+  const key = code+code;
+  return [0,1,2,3,4,5].map(i=>getLineNajia(key, i, palaceEl));
+}
+
+// ── 地支六合／六沖對照 ──
+const LIU_HE = {'子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午'};
+const LIU_CHONG = {'子':'午','午':'子','丑':'未','未':'丑','寅':'申','申':'寅','卯':'酉','酉':'卯','辰':'戌','戌':'辰','巳':'亥','亥':'巳'};
+
+// ── 吉凶傾向判斷（用神比對）──
+// desire:true 代表這個六親是你想要的東西(旺相=好)；false 代表這是你不想要的東西(被克制=好)
+const CATEGORY_MAP = {
+  career:   {label:'事業／工作發展', liuqin:'官鬼', desire:true},
+  wealth:   {label:'財運／投資求財', liuqin:'妻財', desire:true},
+  love:     {label:'感情／婚姻對象', liuqin:'妻財', desire:true},
+  health:   {label:'健康／病情',     liuqin:'官鬼', desire:false},
+  lawsuit:  {label:'官司／是非糾紛', liuqin:'官鬼', desire:false},
+  exam:     {label:'考試／文書證照', liuqin:'父母', desire:true},
+  offspring:{label:'子女／晚輩／福氣', liuqin:'子孫', desire:true},
+  general:  {label:'整體運勢',       liuqin:null,  desire:true}
+};
+// 針對每種問卦類型，把「用神的力量強弱」直接翻譯成具體、貼近問題的白話說法
+const CATEGORY_CONTEXT = {
+  career:   {subject:'工作機會、職位或上司／老闆的態度',
+    good:'目前這方面的助力比較足夠，有機會出現新的工作機會、職位變動或項目進展，可以積極一點。',
+    bad:'目前這方面的力量比較薄弱，工作上可能會覺得阻力較大、機會還不明朗，建議先穩住現況、別躁進。',
+    mid:'這方面有好有壞，一邊有機會、一邊也有阻礙，建議再多觀察一陣子，先不用急著做決定。'},
+  wealth:   {subject:'財運、收入或這筆具體的金錢機會',
+    good:'這段時間的求財機會比較旺，收入或投資上有機會有所斬獲，可以適度把握。',
+    bad:'這段時間求財的力道比較弱，建議先保守理財，不宜貿然投入大筆資金或衝動決策。',
+    mid:'財運目前起伏不定，建議謹慎評估、分批進行，不要一次押太大。'},
+  love:     {subject:'感情裡在意的對象，或這段關係的穩定度',
+    good:'感情這條線目前發展比較順利，對方或關係本身的狀態偏正向，可以放心一些。',
+    bad:'感情這條線目前比較不穩定，對方或關係可能有些疏離、狀況變化，需要多花心思經營、多溝通。',
+    mid:'感情忽好忽壞，關係可能還在磨合階段，不需要因為一時的起伏就下定論。'},
+  health:   {subject:'病情或身體不適本身的力道',
+    good:'代表病情或不適有機會逐漸減輕、獲得控制，是不錯的現象，但仍建議按時回診追蹤。',
+    bad:'代表病情或不適的力道還沒有被壓下來，短期內可能還會持續，建議積極就醫、別輕忽拖延。',
+    mid:'病情起伏不定，時好時壞，建議持續觀察、配合醫囑，不要自行停藥或掉以輕心。'},
+  lawsuit:  {subject:'這件官司或是非糾紛本身的力道',
+    good:'代表這件是非或糾紛有機會逐漸平息，對你不利的力道正在減弱，情勢偏向對你有利。',
+    bad:'代表這件是非或糾紛的力道還很強，短期內不容易善了，建議尋求專業（如律師）協助，謹慎應對、保留證據。',
+    mid:'情況還在拉鋸階段，建議持續蒐證、保持謹慎，不要輕易妥協或激化衝突。'},
+  exam:     {subject:'唸書、考試或文件證照相關的助力',
+    good:'代表這段時間唸書、考試或文件申辦上助力比較足，結果偏向順利，可以照原計畫進行。',
+    bad:'代表這段時間這方面的助力比較弱，可能需要更多準備，或過程中會遇到一些波折，建議提早準備、留緩衝時間。',
+    mid:'有機會也有挑戰，建議加強準備、不要掉以輕心，細節上多檢查幾次。'},
+  offspring:{subject:'子女、晚輩，或整體的福氣、心情狀態',
+    good:'代表這方面偏向順心、有喜氣，是不錯的象徵，可以放寬心。',
+    bad:'代表這方面目前助力比較弱，可能需要多費心思、多點耐心去陪伴或處理。',
+    mid:'好壞參半，建議多花時間關心、觀察後續變化，不用過度擔心。'},
+  general:  {subject:'你目前整體的處境與運勢',
+    good:'目前整體氣勢偏向順，身邊比較容易遇到貴人或機會，可以積極把握。',
+    bad:'目前整體氣勢偏弱，建議保守行事、多觀望，先不要做太大的變動或決定。',
+    mid:'整體運勢有起有伏，建議見機行事，遇到狀況再彈性調整，不用太快下定論。'}
+};
+const EL_SHENG = {'木':'火','火':'土','土':'金','金':'水','水':'木'};
+const EL_KE = {'木':'土','土':'水','水':'火','火':'金','金':'木'};
+function elementRelation(a,b){ // a對b的關係
+  if(a===b) return 'bi';
+  if(EL_SHENG[a]===b) return 'a_sheng_b';
+  if(EL_SHENG[b]===a) return 'b_sheng_a';
+  if(EL_KE[a]===b) return 'a_ke_b';
+  if(EL_KE[b]===a) return 'b_ke_a';
+  return 'none';
+}
+
+function computeVerdict(najia, categoryId, loveLiuqinChoice){
+  const cat = CATEGORY_MAP[categoryId] || CATEGORY_MAP.general;
+  const catLabel = cat.label;
+  // 感情類：讓使用者自己選要用「妻財」還是「官鬼」代表在意的對象（見上方選單說明，沒有強制的男女二分）
+  const liuqin = (categoryId==='love' && loveLiuqinChoice==='official') ? '官鬼' : cat.liuqin;
+  const dayEl = BRANCH_ELEMENT[ZHI_ARR[najia.dayGZ.zhiIdx]];
+  let usedLine, usedNote;
+
+  if(liuqin){
+    const matches = najia.lines.filter(l=>l.liuqin===liuqin);
+    if(matches.length){
+      usedLine = matches.find(l=>l.isWorld) || matches.find(l=>l.changing) || matches[0];
+      usedNote = `本卦第${usedLine.pos}爻（${usedLine.ganzhi}）就是「${liuqin}」，作為這次的判斷依據。`;
+    } else {
+      // 本卦六爻都沒有這個六親 → 到本宮首卦去找「伏神」
+      const pureLines = getPurePalaceLines(najia.palace, najia.palaceEl);
+      const fuIdx = pureLines.findIndex(l=>l.liuqin===liuqin);
+      if(fuIdx>=0){
+        const fu = pureLines[fuIdx];
+        const flying = najia.lines[fuIdx]; // 蓋在伏神上面的「飛神」
+        const isEmptyFu = najia.dayGZ.kongwang.includes(fu.branch);
+        const flyRel = elementRelation(flying.element, fu.element); // 飛神對伏神
+        const suppressed = (flyRel==='a_ke_b'); // 飛神克伏神 → 伏神被壓住、還沒浮上檯面
+        usedLine = {...fu, pos:flying.pos, isWorld:flying.isWorld, isResponse:flying.isResponse,
+          changing:false, changeTo:null, isEmpty:isEmptyFu, isFuShen:true, suppressed};
+        usedNote = `本卦六爻中沒有出現「${liuqin}」，但可以從「伏神」找到：本宮首卦第${flying.pos}爻本來是「${liuqin}」（${fu.ganzhi}），只是被本卦同位置的「${flying.liuqin}」（${flying.ganzhi}）蓋住了，這裡改用這個伏神來判斷。`
+          + (suppressed ? `不過蓋住它的這個「${flying.liuqin}」克制著伏神，代表這件事目前還沒有真正浮上檯面、還在檯面下醞釀。` : '');
+      }
+    }
+  }
+  if(!usedLine){
+    usedLine = najia.lines.find(l=>l.isWorld);
+    usedNote = liuqin
+      ? `本卦六爻和本宮首卦裡都沒有出現「${liuqin}」，改用「世爻」（第${usedLine.pos}爻，代表你自己）的狀態來參考。`
+      : `這裡直接看「世爻」（第${usedLine.pos}爻，代表你自己目前的處境）的狀態。`;
+  }
+
+  const desire = liuqin ? cat.desire : true;
+  const rel = elementRelation(dayEl, usedLine.element);
+  const monthRel = elementRelation(najia.monthEl, usedLine.element);
+  let score = 0;
+  const reasons = [{text:usedNote, weight:0, key:true}]; // usedNote 是背景說明，永遠顯示，不算「影響因素」
+
+  if(usedLine.isEmpty){
+    reasons.push({text:'這一爻目前正好「空亡」（力量還沒真正發揮出來，像手機暫時沒訊號），這次判斷的訊息比較不明朗，建議把下面的結果當作參考，先觀察一陣子再說。', weight:0, key:true});
+  }
+  // 月建：傳統上「月建為提綱」，影響力比日辰更大，所以給的分數權重也比較高
+  const monthTable = desire ? {
+    a_sheng_b: [3, `本月的月建「${najia.monthBranch}」生助它，這是這次影響最大的加分因素。`],
+    bi:        [2, `和本月的月建「${najia.monthBranch}」同一屬性，這整個月的大環境都對它有利。`],
+    b_sheng_a: [-1,`力量被本月的月建「${najia.monthBranch}」洩走，這整個月的大環境對它稍嫌不利。`],
+    a_ke_b:    [-3,`被本月的月建「${najia.monthBranch}」克制，這是這次影響最大的扣分因素。`],
+    b_ke_a:    [1, `本身有力量克制本月的月建「${najia.monthBranch}」，這整個月都還算穩健。`],
+    none:      [0, `和本月的月建「${najia.monthBranch}」沒有明顯生克關係。`]
+  } : {
+    a_ke_b:    [3, `這個不想遇到的狀況被本月的月建「${najia.monthBranch}」壓制，是這次最大的好消息。`],
+    b_sheng_a: [1, `力量正被本月的月建「${najia.monthBranch}」洩走，代表這整個月它都在變弱，算是好事。`],
+    bi:        [-1,`和本月的月建「${najia.monthBranch}」同一屬性，這整個月它的力量都沒被削弱，需留意。`],
+    a_sheng_b: [-3,`反而得到本月的月建「${najia.monthBranch}」生助，這是這次最大的警訊，這整個月都要提高警覺。`],
+    b_ke_a:    [-1,`本身仍有力量在克制本月的月建「${najia.monthBranch}」，這整個月情況都還沒緩解。`],
+    none:      [0, `和本月的月建「${najia.monthBranch}」沒有明顯生克關係。`]
+  };
+  const [sm,rm] = monthTable[monthRel]; score+=sm; reasons.push({text:rm, weight:sm});
+
+  const table = desire ? {
+    a_sheng_b: [2, '日辰生助它，力量較強，是加分的跡象。'],
+    bi:        [1, '和日辰同一屬性，力量穩定。'],
+    b_sheng_a: [-1,'力量被日辰洩走，稍嫌無力。'],
+    a_ke_b:    [-2,'被日辰克制，力量受損，較不理想。'],
+    b_ke_a:    [1, '本身有力量克制日辰，還算穩健。'],
+    none:      [0, '和日辰沒有明顯生克關係。']
+  } : {
+    a_ke_b:    [2, '這個不想遇到的狀況被日辰壓制，是好現象。'],
+    b_sheng_a: [1, '力量正被日辰洩走，代表它在減弱，算是好事。'],
+    bi:        [-1,'和日辰同一屬性，力量沒有被削弱，需留意。'],
+    a_sheng_b: [-2,'反而得到日辰生助，力量在增強，要提高警覺。'],
+    b_ke_a:    [-1,'本身仍有力量在克制其他東西，情況還沒緩解。'],
+    none:      [0, '和日辰沒有明顯生克關係。']
+  };
+  const [s1,r1] = table[rel]; score+=s1; reasons.push({text:r1, weight:s1});
+
+  if(usedLine.changing && usedLine.changeTo){
+    const relC = elementRelation(usedLine.changeTo.element, usedLine.element); // 化爻對本爻
+    if(relC==='a_sheng_b'){
+      const w = desire? 1 : -1; score += w;
+      reasons.push({text:desire? '這一爻正在變化，而且變化後會回過頭來幫助它自己，屬於錦上添花的好現象。' : '這一爻正在變化，而且變化後會回過頭來幫助它自己，代表狀況正在轉強，需留意。', weight:w});
+    } else if(relC==='a_ke_b'){
+      const w = desire? -1 : 1; score += w;
+      reasons.push({text:desire? '這一爻正在變化，但變化後會回過頭來牽制它自己，代表原本的優勢可能生變，需留意。' : '這一爻正在變化，而且變化後會回過頭來牽制它自己，代表狀況正在被壓下去，是好現象。', weight:w});
+    } else {
+      reasons.push({text:'這一爻有變動，但變化後的影響不算明顯，仍要看後續發展。', weight:0});
+    }
+  }
+
+  // 地支沖：日辰跟用神的地支互沖時，靜爻叫「暗動」（表面平靜、其實在悄悄起變化），動爻叫「沖散」（事情可能生變、難成）
+  const dayBranch = ZHI_ARR[najia.dayGZ.zhiIdx];
+  if(LIU_CHONG[usedLine.branch] === dayBranch){
+    if(usedLine.changing){
+      const w = desire? -2 : 2; score += w;
+      reasons.push({text:desire? '這一爻正在變動，又剛好被日辰沖到，叫做「沖散」，代表事情可能生變、比較難成，要有心理準備。' : '這一爻正在變動，又剛好被日辰沖到，叫做「沖散」，對你來說反而是好事，代表這個不想要的狀況比較難真的發生。', weight:w});
+    } else {
+      const w = desire? 1 : -1; score += w;
+      reasons.push({text:desire? '這一爻雖然表面平靜，但剛好被日辰沖到，叫做「暗動」，代表事情其實正在悄悄起變化，是比較會實際發生的跡象。' : '這一爻雖然表面平靜，但剛好被日辰沖到，叫做「暗動」，代表這個不想要的狀況正在悄悄浮動，需要多留意。', weight:w});
+    }
+  }
+
+  let verdict, verdictClass;
+  if(usedLine.isEmpty){
+    verdict='空亡，暫不明朗'; verdictClass='v-void';
+  } else if(usedLine.isFuShen && usedLine.suppressed){
+    verdict='伏神受制，暫不明朗'; verdictClass='v-void';
+  } else if(score>=2){ verdict='偏吉'; verdictClass='v-good'; }
+  else if(score<=-2){ verdict='偏凶'; verdictClass='v-bad'; }
+  else { verdict='吉凶參半，需留意細節'; verdictClass='v-mid'; }
+
+  // 精簡版：只挑「背景說明」＋「影響最大的一個因素」
+  const keyReasons = reasons.filter(r=>r.key);
+  const scoredReasons = reasons.filter(r=>!r.key);
+  let topReason = null;
+  if(scoredReasons.length){
+    topReason = scoredReasons.reduce((a,b)=> Math.abs(b.weight)>Math.abs(a.weight) ? b : a);
+  }
+  const simpleReasons = [...keyReasons.map(r=>r.text)];
+  if(topReason && topReason.weight!==0){
+    simpleReasons.push(topReason.text);
+  } else {
+    simpleReasons.push('各項因素的力道大致平衡，沒有特別突出的加分或扣分理由，建議看詳細版了解全貌。');
+  }
+
+  return {catLabel:cat.label, verdict, verdictClass, score, reasons:reasons.map(r=>r.text), simpleReasons, usedLine};
+}
+
+function getCtxSentence(verdict, categoryId){
+  const ctx = CATEGORY_CONTEXT[categoryId] || CATEGORY_CONTEXT.general;
+  if(verdict.verdictClass==='v-void'){
+    return `這件事（跟「${ctx.subject}」有關的部分）目前還在醞釀階段，力量還沒真正發揮出來，建議先觀察、不用急著下結論，通常過一段時間會比較明朗。`;
+  }
+  return verdict.verdictClass==='v-good' ? ctx.good : verdict.verdictClass==='v-bad' ? ctx.bad : ctx.mid;
+}
+
+// ── 應期（時間點預測）──
+// 六爻裡各家算法差異很大，這裡採用最多入門教材使用的簡化版本：
+// 空亡→出空日；偏吉→值日或合日；偏凶/參半→用神當令的季節。僅供參考，不同派別看法可能不同。
+const ELEMENT_SEASON_BRANCH = {'木':['寅'],'火':['巳'],'金':['申'],'水':['亥'],'土':['辰','戌','丑','未']};
+
+function findNextBranchDay(startDate, targetBranches, maxDays){
+  for(let i=1;i<=maxDays;i++){
+    const d = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()+i);
+    const gz = getDayGanZhi(d);
+    if(targetBranches.includes(ZHI_ARR[gz.zhiIdx])) return {date:d, daysFromNow:i};
+  }
+  return null;
+}
+function findNextSeasonStart(startDate, branches){
+  const y = startDate.getFullYear();
+  const targetTS = Date.UTC(y, startDate.getMonth(), startDate.getDate());
+  let candidates = [];
+  [y, y+1, y+2].forEach(yy=>{
+    JIE_TERMS.forEach(jt=>{
+      if(branches.includes(jt.branch)){
+        const td = getSolarTermDate(yy, jt.idx);
+        candidates.push({ts:Date.UTC(td.y,td.m-1,td.d), date:new Date(td.y,td.m-1,td.d)});
+      }
+    });
+  });
+  candidates.sort((a,b)=>a.ts-b.ts);
+  const found = candidates.find(c=>c.ts>targetTS) || null;
+  if(!found) return null;
+  return {date:found.date, daysFromNow: Math.round((found.ts-targetTS)/86400000)};
+}
+function fmtDate(d){ return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; }
+
+function computeYingQi(najia, verdict, castDate){
+  const base = castDate || new Date();
+  const line = verdict.usedLine;
+  let type, dateInfo, explanation;
+
+  if(line.isFuShen && line.suppressed){
+    type = '伏神透出應期';
+    dateInfo = null;
+    explanation = `這一爻是「伏神」，而且目前被蓋在上面的飛神克制著，還沒辦法發揮作用。傳統上要等到蓋著它的那個飛神變弱（比如飛神被日辰或月建克制、或飛神本身空亡），伏神才會「透出」、事情才會明朗，這個時間點比較難精算，建議耐心觀察後續的變化。`;
+  } else if(line.isEmpty){
+    type = '出空應期';
+    dateInfo = findNextBranchDay(base, [line.branch], 60);
+    explanation = `這一爻目前空亡，通常要等到日期繞回「${line.branch}」這個地支的那一天（叫做「出空」），事情才會真正有動靜、看到明確結果。`;
+  } else if(verdict.verdictClass==='v-good'){
+    type = '值日或合日應期';
+    const heBranch = LIU_HE[line.branch];
+    dateInfo = findNextBranchDay(base, [line.branch, heBranch], 30);
+    explanation = `這一爻目前力量足夠，通常應驗得比較快，抓的是接下來日期跟「${line.branch}」相同、或跟它相合的「${heBranch}」那天，事情多半在這前後會有明確進展。`;
+  } else {
+    type = '當令季節應期';
+    const seasonBranches = ELEMENT_SEASON_BRANCH[line.element] || [];
+    dateInfo = findNextSeasonStart(base, seasonBranches);
+    explanation = `這一爻目前力量比較弱，通常要等到它的五行「${line.element}」當令的季節（也就是最有力量的那段時間）才比較容易看到轉機或結果，這段等待期通常比較長。`;
+  }
+
+  return {type, explanation, dateText: dateInfo ? (dateInfo.date ? fmtDate(dateInfo.date) : null) : null, daysFromNow: dateInfo ? dateInfo.daysFromNow : null};
+}
+
+function buildVerdictHTML(verdict, categoryId, questionText, yingqi){
+  const colorMap = {'v-good':'#5ec98a','v-bad':'#e07a7a','v-mid':'#e0c05e','v-void':'#a78bfa'};
+  const color = colorMap[verdict.verdictClass] || '#ccc';
+  const ctx = CATEGORY_CONTEXT[categoryId] || CATEGORY_CONTEXT.general;
+  const ctxText = getCtxSentence(verdict, categoryId);
+  const ul = verdict.usedLine;
+  let changeLine = '';
+  if(ul && ul.changing && ul.changeTo){
+    changeLine = `另外，這一爻正在變動，代表事情最後會往「<b>${ul.changeTo.liuqin}</b>」的方向轉變——也就是${LIUQIN_DESC[ul.changeTo.liuqin]}`;
+  }
+  const qLine = questionText ? `<div style="font-size:13px;opacity:.8;margin-bottom:8px;">你問的是：「${questionText}」</div>` : '';
+  const yqBlock = yingqi ? `
+    <div style="font-size:13px;line-height:1.8;opacity:.9;background:rgba(255,255,255,0.06);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+      <b>⏱ 大概什麼時候會有結果（應期，僅供參考）：</b><br>
+      ${yingqi.dateText ? `預估在 <b>${yingqi.dateText}</b> 前後${yingqi.daysFromNow!=null?`（約${yingqi.daysFromNow}天內）`:''}` : '這次無法算出明確日期'}——${yingqi.explanation}
+    </div>` : '';
+
+  return `
+  <div style="border:1px solid ${color}66;background:${color}1a;border-radius:12px;padding:14px 16px;margin:14px 0;">
+    ${qLine}
+    <div style="font-size:12px;opacity:.75;margin-bottom:4px;">問卦類型：${verdict.catLabel}</div>
+    <div style="font-size:20px;font-weight:700;color:${color};margin-bottom:10px;">${verdict.verdict}</div>
+    <div style="font-size:13px;line-height:1.8;opacity:.95;background:rgba(255,255,255,0.06);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+      <b>具體來說（針對「${ctx.subject}」）：</b><br>${ctxText}${changeLine?'<br>'+changeLine:''}
+    </div>
+    ${yqBlock}
+    <div style="font-size:12px;line-height:1.8;opacity:.75;">
+      <b>判斷依據</b>（「日辰」是指起卦當天換算出的干支，這裡用來判斷各爻力量的強弱）：<br>
+      <div id="reasons-simple">${verdict.simpleReasons.map(r=>'・'+r).join('<br>')}</div>
+      <div id="reasons-detail" style="display:none;margin-top:2px;">${verdict.reasons.map(r=>'・'+r).join('<br>')}</div>
+      <span onclick="toggleReasonsDetail(this)" data-label="顯示詳細版（列出全部 ${verdict.reasons.length} 項判斷因素）" style="display:inline-block;margin-top:6px;font-size:11px;opacity:.65;text-decoration:underline;cursor:pointer;">顯示詳細版（列出全部 ${verdict.reasons.length} 項判斷因素）</span>
+    </div>
+    <div style="font-size:11px;opacity:.6;margin-top:10px;">
+      提醒：這是根據六爻納甲的基本生克規則自動整理的參考方向，六爻解讀本身彈性很大，實際情況仍建議搭配卦辭、爻辭與自身狀況綜合判斷，不宜完全依賴單一結論。應期的算法各家說法不一，這裡用的是比較多入門教材採用的簡化版本，實際時間可能會有出入。
+    </div>
+  </div>`;
+}
+
+
+// 把六爻納甲分析組成通俗易懂的 HTML 區塊
+// 世應關係：直接給結論,不用使用者自己判斷生克
+function getWorldResponseVerdict(worldEl, respEl){
+  const rel = elementRelation(worldEl, respEl);
+  const table = {
+    bi:        {label:'比和', good:true,  text:'你和對方（或事情的另一端）屬性相同，步調相近，算是平順穩定，沒有明顯衝突或拉扯。'},
+    a_sheng_b: {label:'生合', good:true,  text:'你正在主動幫助、成就對方（或這件事），關係是正向的，但也代表你需要多付出一些。'},
+    b_sheng_a: {label:'生合', good:true,  text:'對方（或外在環境）正在幫助你，事情推進上會比較順利、輕鬆。'},
+    a_ke_b:    {label:'刑克', good:'mixed', text:'你對這件事／對方的掌控力比較強，主導權在你手上；是優勢，但也要留意別太強勢，以免關係緊繃。'},
+    b_ke_a:    {label:'刑克', good:false, text:'對方（或外在環境）對你形成比較大的壓力與阻礙，目前處在較被動、不利的位置，需要多留意、多準備。'},
+    none:      {label:'普通', good:'neutral', text:'兩邊沒有明顯的生克關係，彼此比較獨立，互相牽動不大。'}
+  };
+  return table[rel];
+}
+// 世應之間的地支六合／六沖，補充「關係穩不穩」這一層（跟上面的五行生克是不同角度）
+function getWorldResponseBranchNote(worldBranch, respBranch){
+  if(LIU_HE[worldBranch]===respBranch){
+    return '另外，你（世）和對方（應）的地支剛好相「合」，代表這件事或這段關係目前處於比較容易談攏、容易凝聚共識的狀態，是穩定加分的訊號。';
+  }
+  if(LIU_CHONG[worldBranch]===respBranch){
+    return '另外，你（世）和對方（應）的地支剛好相「沖」，代表這件事或這段關係目前處於比較不穩定、容易有變數或意見分歧的狀態，需要多一點耐心磨合。';
+  }
+  return '';
+}
+
+function buildNajiaHTML(najia){
+  if(!najia) return '<div class="rblock-text">此卦的納甲資料暫未收錄。</div>';
+  const rows = najia.lines.slice().reverse().map(l=>{
+    const lineArt = l.isYang
+      ? `<div class="h-seg h-yang" style="width:36px"></div>`
+      : `<div style="display:flex;gap:6px;"><div class="h-seg h-yin" style="width:15px"></div><div class="h-seg h-yin" style="width:15px"></div></div>`;
+    const marks = [];
+    if(l.isWorld) marks.push('<span class="chip chip-change" style="padding:2px 7px;font-size:11px;">世＝你自己</span>');
+    if(l.isResponse) marks.push('<span class="chip chip-yin" style="padding:2px 7px;font-size:11px;">應＝對方</span>');
+    if(l.changing) marks.push('<span class="chip chip-sum" style="padding:2px 7px;font-size:11px;">動＝變化中</span>');
+    if(l.isEmpty) marks.push('<span class="chip" style="padding:2px 7px;font-size:11px;background:rgba(150,150,150,0.25);">空＝暫不明朗</span>');
+    const changeTxt = l.changeTo ? `<div class="najia-change">→ 這一爻正在變，最後會變成「<b>${l.changeTo.liuqin}</b>」：${LIUQIN_DESC[l.changeTo.liuqin]}</div>` : '';
+    return `<div class="najia-row">
+      <div class="najia-row-head">
+        <span class="najia-postag">${l.pos}爻</span>
+        <span class="najia-yaoart">${lineArt}</span>
+        ${marks.join('')}
+      </div>
+      <div class="najia-row-body">
+        <span class="najia-liuqin-tag">${l.liuqin}</span>
+        <span class="najia-beast-tag">${l.beast}：${SIX_BEASTS_DESC[l.beast]}</span>
+      </div>
+      <div class="najia-ganzhi-detail" style="display:none;">干支：${l.ganzhi}（五行屬${l.element}，跟今天日辰「${najia.dayGZ.text}」比較生克，就得出上面「判斷依據」裡的強弱結果）</div>
+      ${changeTxt}
+    </div>`;
+  }).join('');
+
+  const worldLine = najia.lines[najia.lines.findIndex(l=>l.isWorld)];
+  const respLine = najia.lines[najia.lines.findIndex(l=>l.isResponse)];
+  const wr = (worldLine && respLine) ? getWorldResponseVerdict(worldLine.element, respLine.element) : null;
+  const wrColor = wr ? (wr.good===true?'#5ec98a':wr.good===false?'#e07a7a':'#e0c05e') : '#ccc';
+
+  return `
+  <div style="font-size:13px;opacity:.85;margin-bottom:12px;line-height:1.7;">
+    今天是 <b>${najia.dayGZ.text}日</b>，本月的月建是「<b>${najia.monthBranch}</b>」——這兩個都是用來衡量每一爻力量強弱的比較基準，差別是：<b>日辰只管當天</b>，<b>月建則是「這整個月」的大環境</b>，傳統上月建的影響力比日辰更大（有點像日辰是「今天的天氣」，月建是「這個月的季節」，季節對你的影響通常比單一天的天氣更持久）。下面「判斷依據」會同時用到這兩個。<br><br>
+    這一卦屬於「<b>${najia.palace}宮（${najia.palaceEl}）</b>」的<b>${GEN_NAME[najia.gen]}</b>——這個分類實際的用途是：① 決定下面六爻表格裡哪一爻是代表<b>你自己</b>的「世」、哪一爻是代表<b>對方或事情另一端</b>的「應」；② 決定每一爻要拿「跟${najia.palace}宮的『${najia.palaceEl}』屬性合不合」來比對，才能算出它是父母、兄弟、子孫、官鬼還是妻財。這兩點的結果，就是下面這張表格。
+  </div>
+  <div class="najia-table">${rows}</div>
+  <div style="text-align:center;margin-top:6px;">
+    <span onclick="toggleGanzhiDetail(this)" style="font-size:11px;opacity:.55;text-decoration:underline;cursor:pointer;">顯示每一爻的干支細節（進階，一般可略過）</span>
+  </div>
+  ${wr ? `
+  <div style="border:1px solid ${wrColor}66;background:${wrColor}1a;border-radius:12px;padding:12px 14px;margin-top:14px;">
+    <div style="font-size:13px;opacity:.8;margin-bottom:4px;">世爻（你自己，${worldLine.pos}爻）與應爻（對方／另一端，${respLine.pos}爻）的關係：</div>
+    <div style="font-size:17px;font-weight:700;color:${wrColor};margin-bottom:6px;">${wr.label}</div>
+    <div style="font-size:13px;line-height:1.7;opacity:.92;">${wr.text}</div>
+    ${(()=>{const bn=getWorldResponseBranchNote(worldLine.branch, respLine.branch); return bn?`<div style="font-size:13px;line-height:1.7;opacity:.92;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.15);">${bn}</div>`:'';})()}
+  </div>` : ''}
+  <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);font-size:13px;line-height:1.8;">
+    <b>◎ 新手看懂小提示：</b><br>
+    ・「世」代表<b>你自己</b>，「應」代表<b>對方或事情的另一端</b>，「動」代表<b>這次的變化重點</b>，可以特別留意它變成什麼、暗示事情最後會往哪個方向走。<br>
+    ・「<b>空</b>」代表這一爻目前「<b>空亡</b>」：把 10 個天干、12 個地支兩兩配對，因為數量不同，每 10 天總會有 2 個地支配不到、暫時「落單」，這幾天輪到它的爻就會像手機沒訊號一樣，力量還沒真正發揮出來。看到「空」的爻，代表這方面的事現階段還不明朗、多半還在醞釀階段，不用急著論斷吉凶，通常要再過一段時間、等它「有訊號」了，才會看到比較明確的結果。<br>
+    ・六親白話對照：<br>
+    ${Object.entries(LIUQIN_DESC).map(([k,v])=>`　<b>${k}</b>：${v}`).join('<br>')}
+  </div>`;
+}
+
+function toggleGanzhiDetail(el){
+  const box = el.closest('.rblock-najia') || document;
+  const details = box.querySelectorAll('.najia-ganzhi-detail');
+  const showing = details.length && details[0].style.display !== 'none';
+  details.forEach(d=>d.style.display = showing ? 'none' : 'block');
+  el.textContent = showing ? '顯示每一爻的干支細節（進階，一般可略過）' : '隱藏干支細節';
+}
+function toggleReasonsDetail(el){
+  const simple = document.getElementById('reasons-simple');
+  const detail = document.getElementById('reasons-detail');
+  const showing = detail.style.display !== 'none';
+  detail.style.display = showing ? 'none' : 'block';
+  simple.style.display = showing ? 'block' : 'none';
+  el.textContent = showing ? el.dataset.label : '收合，只看精簡版';
+}
+
+let yaos=[], currentYao=0, question='', askCategory='general', askLoveLiuqin=null;
+const MAX_HISTORY = 50;
+
+window.onload = function() { loadHistoryList(); };
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='s-result') document.getElementById(id).scrollTop=0;
+}
+
+function onCategoryChange(){
+  const cat = document.getElementById('q-category').value;
+  document.getElementById('q-gender-row').style.display = (cat==='love') ? 'block' : 'none';
+}
+
+function toggleLoveAdvanced(el){
+  const sel = document.getElementById('q-gender');
+  const showing = sel.style.display !== 'none';
+  sel.style.display = showing ? 'none' : 'block';
+  el.textContent = showing ? '進階設定（一般可略過）' : '收合進階設定';
+}
+
+function startDivination(){
+  question=document.getElementById('q-input').value.trim();
+  askCategory=document.getElementById('q-category').value;
+  askLoveLiuqin = (askCategory==='love') ? document.getElementById('q-gender').value : null;
+  yaos=[]; currentYao=0;
+  buildProgress();
+  updateYaoDisplay();
+  document.getElementById('throw-btn').disabled=false;
+  document.getElementById('coin-result').innerHTML='';
+  document.getElementById('yao-history').innerHTML='';
+  [0,1,2].forEach(i=>{
+    const c=document.getElementById('c'+i);
+    c.className='coin idle';
+    c.querySelector('.coin-char').textContent='';
+    document.getElementById('cl'+i).textContent='';
+  });
+  showScreen('s-cast');
+}
+
+function buildProgress(){
+  const p=document.getElementById('progress');
+  p.innerHTML=Array.from({length:6},(_,i)=>
+    `<div class="pdot${i===0?' active':''}" id="pd${i}"></div>`).join('');
+}
+
+function updateYaoDisplay(){
+  document.getElementById('yao-num-display').textContent=NUM_NAMES[currentYao]+' 爻';
+  for(let i=0;i<6;i++){
+    const d=document.getElementById('pd'+i);
+    if(!d) continue;
+    d.className='pdot'+(i<currentYao?' done':i===currentYao?' active':'');
+  }
+}
+
+function throwCoins(){
+  if(currentYao>=6) return;
+  const vals=[0,1,2].map(()=>Math.random()<0.5?3:2);
+  const sum=vals.reduce((a,b)=>a+b,0);
+
+  [0,1,2].forEach(i=>{
+    const c=document.getElementById('c'+i);
+    c.className='coin flipping';
+    c.querySelector('.coin-char').textContent='';
+    document.getElementById('cl'+i).textContent='';
+  });
+
+  setTimeout(()=>{
+    [0,1,2].forEach(i=>{
+      const c=document.getElementById('c'+i);
+      const isYang=vals[i]===3;
+      c.className='coin '+(isYang?'yang':'yin');
+      c.querySelector('.coin-char').textContent=isYang?'花':'字';
+      document.getElementById('cl'+i).textContent=isYang?'背面':'字面';
+    });
+
+    let type; let changing=false;
+    if(sum===9){type='老陽 ●'; changing=true;}
+    else if(sum===8){type='少陰 ○';}
+    else if(sum===7){type='少陽 ●';}
+    else{type='老陰 ○'; changing=true;}
+    const isYang=(sum===7||sum===9);
+
+    document.getElementById('coin-result').innerHTML=
+      `<span class="chip chip-sum">${sum}點</span>`+
+      `<span class="chip ${isYang?'chip-yang':'chip-yin'}">${type}</span>`+
+      (changing?`<span class="chip chip-change">變爻 ●</span>`:'');
+
+    yaos.push({sum,type,changing,isYang});
+    renderHistory();
+    currentYao++;
+
+    if(currentYao<6){
+      updateYaoDisplay();
+    } else {
+      document.getElementById('throw-btn').disabled=true;
+      setTimeout(showResult, 700);
+    }
+  }, 600);
+}
+
+function renderHistory(){
+  const el=document.getElementById('yao-history');
+  el.innerHTML=yaos.map((y,i)=>{
+    const line=y.isYang
+      ?`<div class="seg seg-yang" style="width:120px"></div>`
+      :`<div class="seg seg-yin" style="width:50px"></div><div style="width:20px"></div><div class="seg seg-yin" style="width:50px"></div>`;
+    return `<div class="yao-row">
+      <span class="yao-idx">${NUM_NAMES[i]}</span>
+      <div class="yao-line-wrap">${line}</div>
+      ${y.changing?'<div class="chg-dot"></div>':'<div style="width:10px"></div>'}
+    </div>`;
+  }).join('');
+}
+
+// 由初爻→上爻依序組成 key
+function getKey(yaosData, useChanged){
+  return yaosData.map(y=>{
+    const yang = useChanged && y.changing ? !y.isYang : y.isYang;
+    return yang ? '1' : '0';
+  }).join('');
+}
+
+function findHex(key){
+  return HEXAGRAMS[key] || {
+    n:'?', name:'未知', title:'卦象未收錄',
+    judgment:'此卦象暫未收錄，請以六十四卦查表。',
+    meaning:'此卦象暫未收錄，請以六十四卦查表。',
+    advice:'請查閱易經原典。',
+    career:'請查閱易經原典。', love:'請查閱易經原典。', wealth:'請查閱易經原典。',
+    changeNote:'請查閱易經原典。'
+  };
+}
+
+function hexLines(yaosData, useChanged){
+  return yaosData.slice().map(y=>{
+    const yang = useChanged && y.changing ? !y.isYang : y.isYang;
+    const line = yang
+      ?`<div class="h-seg h-yang" style="width:76px"></div>`
+      :`<div class="h-seg h-yin" style="width:32px"></div><div style="width:12px"></div><div class="h-seg h-yin" style="width:32px"></div>`;
+    return `<div class="hex-line">${line}</div>`;
+  }).reverse().join('');
+}
+
+
+// ── 歷史紀錄加密（選用）：密碼只存在記憶體，紀錄以 AES-GCM 加密後存在本機 ──
+const LS_PLAIN='iching_history', LS_ENC='iching_history_enc';
+let _key=null, _salt=null, _hiddenAt=0;
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function b64(buf){const a=new Uint8Array(buf);let s='';for(let i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s)}
+function unb64(t){const s=atob(t),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+async function deriveKey(pass,salt){
+  const m=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function encryptJSON(obj,key,salt){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(obj)));
+  return JSON.stringify({s:b64(salt),i:b64(iv),d:b64(ct)});
+}
+const isLocked=()=>!!localStorage.getItem(LS_ENC);
+const hasCrypto=()=>!!(window.crypto&&crypto.subtle);
+async function readHistory(){
+  if(!isLocked()){try{return JSON.parse(localStorage.getItem(LS_PLAIN))||[]}catch(e){return []}}
+  if(!_key)return null;
+  try{
+    const o=JSON.parse(localStorage.getItem(LS_ENC));
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(o.i)},_key,unb64(o.d));
+    return JSON.parse(new TextDecoder().decode(pt));
+  }catch(e){return null}
+}
+async function writeHistory(arr){
+  if(!isLocked()){localStorage.setItem(LS_PLAIN,JSON.stringify(arr));return}
+  localStorage.setItem(LS_ENC,await encryptJSON(arr,_key,_salt));
+}
+async function tryUnlock(pass){
+  try{
+    const o=JSON.parse(localStorage.getItem(LS_ENC));
+    const salt=unb64(o.s), key=await deriveKey(pass,salt);
+    await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(o.i)},key,unb64(o.d));
+    _key=key;_salt=salt;return true;
+  }catch(e){return false}
+}
+function askPass({title,text,confirm=false}){
+  return new Promise(res=>{
+    const $=id=>document.getElementById(id), m=$('pass-modal');
+    $('pw-title').textContent=title;$('pw-text').textContent=text||'';
+    $('pw-input').value='';$('pw-input2').value='';$('pw-err').textContent='';
+    $('pw-input2').style.display=confirm?'block':'none';
+    m.classList.add('show');setTimeout(()=>$('pw-input').focus(),50);
+    const done=v=>{m.classList.remove('show');res(v)};
+    $('pw-cancel').onclick=()=>done(null);
+    $('pw-ok').onclick=()=>{
+      const p=$('pw-input').value;
+      if(!p){$('pw-err').textContent='請輸入密碼';return}
+      if(confirm){
+        if(p.length<4){$('pw-err').textContent='至少 4 個字元';return}
+        if(p!==$('pw-input2').value){$('pw-err').textContent='兩次輸入不一致';return}
+      }
+      done(p);
+    };
+  });
+}
+async function unlockUI(text){
+  let msg=text||'輸入密碼以查看與儲存紀錄';
+  for(;;){
+    const p=await askPass({title:'🔒 解鎖占卜紀錄',text:msg});
+    if(p===null)return false;
+    if(await tryUnlock(p)){loadHistoryList();return true}
+    msg='密碼不正確，請再試一次';
+  }
+}
+async function toggleLock(){
+  if(!hasCrypto()){alert('目前的環境不支援加密，請用 https 網址開啟。');return}
+  if(!isLocked()){
+    const p=await askPass({title:'設定密碼',text:'設定後，占卜紀錄會加密存放在這支手機。忘記密碼無法復原，只能清除全部紀錄。',confirm:true});
+    if(p===null)return;
+    const old=(await readHistory())||[];
+    _salt=crypto.getRandomValues(new Uint8Array(16));
+    _key=await deriveKey(p,_salt);
+    localStorage.setItem(LS_ENC,await encryptJSON(old,_key,_salt));
+    localStorage.removeItem(LS_PLAIN);
+  }else{
+    if(!confirm('要取消密碼，改回不加密儲存嗎？'))return;
+    if(!_key&&!(await unlockUI()))return;
+    const cur=(await readHistory())||[];
+    localStorage.setItem(LS_PLAIN,JSON.stringify(cur));
+    localStorage.removeItem(LS_ENC);_key=null;_salt=null;
+  }
+  loadHistoryList();
+}
+// 離開頁面超過 1 分鐘，自動重新上鎖
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')_hiddenAt=Date.now();
+  else if(isLocked()&&_key&&_hiddenAt&&Date.now()-_hiddenAt>60000){_key=null;loadHistoryList()}
+});
+
+// ── 歷史紀錄：不再暫借全域 yaos，直接傳入 yaosData ──
+async function saveToLocalStorage(q, yaosData){
+  try {
+    if(isLocked()&&!_key){ if(!(await unlockUI('輸入密碼以儲存本次紀錄（取消則不儲存）'))) return; }
+    let history = (await readHistory()) || [];
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    const mainHex = findHex(getKey(yaosData, false));
+    const hasChange = yaosData.some(y=>y.changing);
+    const changedHex = hasChange ? findHex(getKey(yaosData, true)) : null;
+
+    const newRecord = {
+      id: Date.now(),
+      question: q || '未輸入問題',
+      time: timeStr,
+      castDate: now.toISOString(),
+      askCategory: askCategory,
+      askLoveLiuqin: askLoveLiuqin,
+      yaos: yaosData,
+      hexName: mainHex.title + (changedHex ? ` 之 ${changedHex.name}` : '')
+    };
+
+    history.unshift(newRecord);
+    // 最多保留 MAX_HISTORY 筆
+    if(history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+    await writeHistory(history);
+    loadHistoryList();
+  } catch(e) {
+    console.error('儲存紀錄失敗：', e);
+  }
+}
+
+async function loadHistoryList(){
+  const box = document.getElementById('history-list-box');
+  if(!box) return;
+  const lb = document.getElementById('lock-btn');
+  if(lb) lb.textContent = isLocked() ? '🔒 密碼已啟用' : '🔓 設定密碼';
+  if(isLocked() && !_key){
+    box.innerHTML = `<div class="history-empty">🔒 紀錄已加密<br><button class="btn-clear-history" style="color:var(--gold2);font-size:13px;margin-top:8px" onclick="unlockUI()">輸入密碼解鎖</button></div>`;
+    return;
+  }
+  const history = (await readHistory()) || [];
+  if(history.length === 0){
+    box.innerHTML = `<div class="history-empty">暫無占卜紀錄</div>`;
+    return;
+  }
+  box.innerHTML = history.map(item=>`
+    <div class="history-item" onclick="viewHistoryItem(${Number(item.id)})">
+      <div class="history-item-left">
+        <div class="history-item-q">${esc(item.question)}</div>
+        <div class="history-item-time">${esc(item.time)}</div>
+      </div>
+      <div class="history-item-right">${esc(item.hexName)}</div>
+    </div>
+  `).join('');
+}
+
+function openDeleteModal(){ document.getElementById('delete-modal').classList.add('show'); }
+function closeDeleteModal(){ document.getElementById('delete-modal').classList.remove('show'); }
+function confirmClearHistory(){
+  localStorage.removeItem(LS_PLAIN);
+  localStorage.removeItem(LS_ENC);
+  _key=null;_salt=null;
+  closeDeleteModal();
+  loadHistoryList();
+}
+
+async function viewHistoryItem(id){
+  let history = (await readHistory()) || [];
+  const record = history.find(item=>item.id===id);
+  if(!record) return;
+  question = record.question;
+  yaos = record.yaos;
+  askCategory = record.askCategory || 'general';
+  askLoveLiuqin = record.askLoveLiuqin || null;
+  const castDate = record.castDate ? new Date(record.castDate) : parseTimeStr(record.time);
+  buildResultPageUI(yaos, castDate);
+  showScreen('s-result');
+}
+
+// 舊紀錄沒有 castDate 欄位時，退而求其次解析 "YYYY-MM-DD HH:MM" 字串
+function parseTimeStr(str){
+  if(!str) return new Date();
+  const m = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if(!m) return new Date();
+  return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+}
+
+function toggleNajia(){
+  const box = document.getElementById('najia-box');
+  const btn = document.getElementById('najia-toggle-btn');
+  if(!box) return;
+  const showing = box.style.display !== 'none';
+  box.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? '☯ 展開進階模式：六爻納甲解讀' : '☯ 收合進階模式：六爻納甲解讀';
+}
+
+function buildResultPageUI(yaosData, castDate){
+  const mainKey = getKey(yaosData, false);
+  const mainHex = findHex(mainKey);
+  const hasChange = yaosData.some(y=>y.changing);
+  const changedHex = hasChange ? findHex(getKey(yaosData, true)) : null;
+  const changingList = yaosData.map((y,i)=>y.changing?NUM_NAMES[i]+'爻':null).filter(Boolean);
+
+  // 先算好六爻納甲的吉凶判斷，放在最上面當「一句話結論」，其他都是補充細節
+  const najia = buildNajiaAnalysis(yaosData, castDate);
+  const verdict = najia ? computeVerdict(najia, askCategory || 'general', askLoveLiuqin) : null;
+
+  let h='';
+  if(question) h+=`<div class="result-q">問：${question}</div>`;
+  h+=`<div class="result-eyebrow">— 卦象解讀 —</div>`;
+
+  if(verdict){
+    const colorMap = {'v-good':'#5ec98a','v-bad':'#e07a7a','v-mid':'#e0c05e','v-void':'#a78bfa'};
+    const color = colorMap[verdict.verdictClass] || '#ccc';
+    h+=`<div style="border:1px solid ${color}88;background:${color}22;border-radius:14px;padding:14px 16px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:11px;opacity:.7;margin-bottom:4px;">◆ 如果只看一句話 ◆</div>
+      <div style="font-size:22px;font-weight:800;color:${color};margin-bottom:6px;">${verdict.verdict}</div>
+      <div style="font-size:13px;line-height:1.7;opacity:.95;">${getCtxSentence(verdict, askCategory||'general')}</div>
+      <div style="font-size:11px;opacity:.55;margin-top:8px;">
+        這是用「六爻」方法算出的結論，完整原因在頁面下方「六爻納甲」區塊；中間的「卦辭原意／整體運勢」則是另一套獨立的解讀角度，兩邊可以互相參考。
+      </div>
+    </div>`;
+  }
+
+  h+=buildOracleCard(mainKey, mainHex, changedHex);
+
+  // 卦象結構解析（新增：自動由上下卦組合生成，幫助新手理解「為什麼是這個卦」）
+  h+=`<div class="rblock rblock-structure">
+    <div class="rblock-label lb-teal">◇ 卦象結構解析</div>
+    <div class="rblock-text">${getStructureAnalysis(mainKey)}</div>
+  </div>`;
+
+  // 卦辭原意
+  h+=`<div class="rblock rblock-judgment">
+    <div class="rblock-label lb-purple">❖ 卦辭原意</div>
+    <div class="rblock-text rblock-quote">${mainHex.judgment}</div>
+    ${JUDGMENT_GLOSS[mainHex.n] ? `<div class="judgment-gloss"><b>白話翻譯：</b>${JUDGMENT_GLOSS[mainHex.n]}</div>` : ''}
+  </div>`;
+
+  // 整體運勢 + 行事建議
+  h+=`<div class="rblock rblock-meaning">
+    <div class="rblock-label lb-gold">✦ 整體運勢</div>
+    <div class="rblock-text">${mainHex.meaning}</div>
+  </div>`;
+  h+=`<div class="rblock rblock-advice">
+    <div class="rblock-label lb-teal">◈ 行事建議</div>
+    <div class="rblock-text">${mainHex.advice}</div>
+  </div>`;
+
+  // 分類解讀：事業 / 感情 / 財運（分頁籤）── 自動跳到使用者一開始選的類型
+  const TAB_CATS = ['career','love','wealth'];
+  const TAB_LABELS = {career:'事業', love:'感情', wealth:'財運'};
+  const activeTab = TAB_CATS.includes(askCategory) ? askCategory : 'career';
+  h+=`<div class="category-tabs" id="cat-tabs">
+    ${TAB_CATS.map(c=>`<button class="cat-tab${c===activeTab?' active':''}" data-cat="${c}" onclick="switchCategory(this,'${c}')">${TAB_LABELS[c]}</button>`).join('')}
+  </div>`;
+  h+=`<div class="rblock rblock-category" id="cat-content">
+    <div class="rblock-label lb-gold2" id="cat-label">⬢ ${TAB_LABELS[activeTab]}解讀</div>
+    <div class="rblock-text" id="cat-text">${mainHex[activeTab]}</div>
+  </div>`;
+  if(!TAB_CATS.includes(askCategory) && askCategory!=='general'){
+    const catLabel = (CATEGORY_MAP[askCategory]||{}).label || '';
+    h+=`<div style="font-size:12px;opacity:.65;line-height:1.7;padding:0 4px 14px;">
+      ※ 你問的是「${catLabel}」，上面這幾個分頁目前還沒有針對這類問題寫專屬解讀，
+      可以先參考「整體運勢」與「行事建議」，或直接看下面依你的問題客製化整理的六爻分析。
+    </div>`;
+  }
+
+  if(changedHex){
+    h+=`<div class="rblock rblock-change">
+      <div class="rblock-label lb-red">● 變卦提示（${changedHex.title}）</div>
+      <div class="rblock-text">${changedHex.meaning}<br><br>${changedHex.advice}</div>
+    </div>`;
+    h+=`<div class="rblock rblock-changenote">
+      <div class="rblock-label lb-red">◆ 本卦至變卦的轉化</div>
+      <div class="rblock-text">${mainHex.changeNote}</div>
+    </div>`;
+  }
+  if(changingList.length){
+    h+=`<div class="change-pills">變爻：${changingList.join('、')}</div>`;
+    // 新增：針對每一個變爻，給出通用爻位深度解讀（位置意義＋得正/不得正判斷）
+    yaosData.forEach((y,i)=>{
+      if(!y.changing) return;
+      const lineNajia = najia ? najia.lines[i] : null;
+      h+=`<div class="rblock rblock-yaoposition">
+        <div class="rblock-label lb-red">▲ ${NUM_NAMES[i]}爻深度解讀</div>
+        <div class="rblock-text">${getYaoPositionAnalysis(i, y.isYang, lineNajia)}</div>
+      </div>`;
+    });
+  }
+  // ── 進階模式：六爻納甲解讀（與上方義理易共用同一次搖卦結果，najia/verdict 已在最上方算好）──
+  if(najia){
+    h += `<div style="font-size:12px;opacity:.6;text-align:center;margin:16px 0 8px;line-height:1.6;">
+      ── 以上是「卦辭」角度的解讀；下面會把最上方那句「六爻」結論的完整原因展開給你看 ──<br>
+      這兩套是不同的分析角度，方向大致相同時可以更放心，若有落差，建議兩邊都納入考慮
+    </div>`;
+    const yingqi = computeYingQi(najia, verdict, castDate);
+    h += buildVerdictHTML(verdict, askCategory || 'general', question, yingqi);
+  }
+  h+=`<button class="btn-reset" id="najia-toggle-btn" onclick="toggleNajia()" style="margin-top:6px;background:rgba(155,89,182,0.18);border:1px solid rgba(155,89,182,0.5);">☯ 展開進階模式：六爻納甲解讀</button>`;
+  h+=`<div id="najia-box" style="display:none;margin-top:12px;">
+    <div class="rblock rblock-najia">
+      <div class="rblock-label lb-purple">☯ 六爻納甲（六親／六獸／世應）</div>
+      <div class="rblock-text">${buildNajiaHTML(najia)}</div>
+    </div>
+  </div>`;
+
+  h+=`<button class="btn-reset" onclick="resetAll()">✦ 返回首頁</button>`;
+  document.getElementById('result-content').innerHTML = h;
+
+  // 記住目前卦象資料供分頁籤切換使用
+  window.__currentMainHex = mainHex;
+}
+
+function switchCategory(btn, cat){
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const labels = {career:'⬢ 事業解讀', love:'♡ 感情解讀', wealth:'◈ 財運解讀'};
+  const hex = window.__currentMainHex;
+  if(!hex) return;
+  document.getElementById('cat-label').textContent = labels[cat];
+  document.getElementById('cat-text').textContent = hex[cat];
+}
+
+function showResult(){
+  const castDate = new Date();
+  saveToLocalStorage(question, yaos);
+  buildResultPageUI(yaos, castDate);
+  showScreen('s-result');
+}
+
+function resetAll(){
+  document.getElementById('q-input').value='';
+  loadHistoryList();
+  showScreen('s-intro');
+}
+</script>
+</body>
+</html>
